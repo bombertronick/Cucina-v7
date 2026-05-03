@@ -260,7 +260,7 @@
     <div class="modal-overlay" id="modal-category-manager"><div class="modal-box"><div class="modal-header"><div class="modal-back-btn" onclick="closeModals()"><i class="fa-solid fa-arrow-left"></i></div><div class="modal-title">Categorie e Filtri</div></div><div id="category-list-editor" style="margin-bottom:20px;"></div><div class="input-group"><label>Nuova Categoria</label><input type="text" id="new-cat-name"></div><div id="color-palette" style="display:flex; gap:10px; margin-bottom:15px; flex-wrap:wrap;"></div><div class="input-group"><label>Comportamento</label><select id="new-cat-type"><option value="standard">Standard (Spunta Verde)</option><option value="magazzino">Magazzino (Contatore +/-)</option></select></div><button class="btn-action" style="background:var(--success); color:white;" onclick="addCategory()">Aggiungi Categoria</button></div></div>
     
     <div class="modal-overlay" id="modal-report"><div class="modal-box" style="max-width:650px;"><div class="modal-header"><div class="modal-back-btn" onclick="closeModals()"><i class="fa-solid fa-arrow-left"></i></div><div class="modal-title">Ordini e Reportistica</div></div><div id="report-preview" style="background:var(--bg); padding:15px; border-radius:12px; margin-bottom:20px; max-height:350px; overflow-y:auto; white-space:pre-wrap; font-family:monospace; font-size:13px; border:1px solid var(--border);"></div><div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;"><button class="btn-action" style="background:#25D366; color:white;" onclick="copyReportText()"><i class="fa-brands fa-whatsapp"></i> Invia Ordini</button><button class="btn-action" style="background:var(--primary); color:white;" onclick="downloadReportExcel()"><i class="fa-solid fa-file-excel"></i> Esporta CSV</button></div></div></div>
-    <script>
+           <script>
         const CLOUD_KEY = "$2a$10$cANUKKt8gusYBU0s1g35UeBKFJM21uWzSe/ugzWuHGeZhj6C7KEui";
         const PALETTE = ["#0f172a", "#0984e3", "#00b894", "#d63031", "#e67e22", "#8e44ad", "#fd79a8", "#00ced1"];
         
@@ -273,11 +273,11 @@
         function sanitize(str) { return (str || "").toString().replace(/[<>"]/g, "'").trim(); }
         function generateId() { return Math.random().toString(36).substr(2, 9); }
 
-        // --- GESTIONE FINESTRE E HISTORY API (FIX UX TASTO INDIETRO E SCROLL) ---
+        // --- GESTIONE FINESTRE E HISTORY API (TASTO INDIETRO E SCROLL) ---
         function showModal(modalId) {
             document.getElementById(modalId).style.display = 'flex';
-            document.body.classList.add('modal-open'); // Blocca lo scorrimento di fondo
-            history.pushState({ modal: modalId }, null, window.location.href); // Inganna il browser
+            document.body.classList.add('modal-open');
+            history.pushState({ modal: modalId }, null, window.location.href);
         }
 
         function closeModals(eventOrGoBack) {
@@ -285,26 +285,14 @@
             let wasOpen = false;
             
             document.querySelectorAll('.modal-overlay').forEach(m => {
-                if(m.style.display === 'flex') {
-                    wasOpen = true;
-                    m.style.display = 'none';
-                }
+                if(m.style.display === 'flex') { wasOpen = true; m.style.display = 'none'; }
             });
             
-            document.body.classList.remove('modal-open'); // Sblocca lo scorrimento di fondo
-            
-            // Se abbiamo chiuso con il bottone UI (e non col tasto fisico), torniamo indietro nella history
-            if (wasOpen && goBack) {
-                history.back();
-            }
+            document.body.classList.remove('modal-open');
+            if (wasOpen && goBack) history.back();
         }
 
-        // Ascolta il tasto fisico "Indietro" del telefono o lo swipe
-        window.addEventListener('popstate', function (event) {
-            // Se preme indietro, chiudiamo le modali dicendo alla funzione di NON fare un ulteriore history.back()
-            closeModals(false); 
-        });
-
+        window.addEventListener('popstate', function (event) { closeModals(false); });
 
         // --- AVVIO E CLOUD ---
         const urlParams = new URLSearchParams(window.location.search);
@@ -334,7 +322,6 @@
             checkNewDayAndBackup(); renderApp();
         }
 
-        // --- SALVATAGGI E MACCHINA DEL TEMPO ---
         function saveStructure() { localStorage.setItem('cucina_v8_struct', JSON.stringify(appStructure)); document.getElementById('sync-indicator').style.display='block'; }
         function saveState() { localStorage.setItem('cucina_v8_state', JSON.stringify(appState)); }
         
@@ -374,7 +361,7 @@
             }
         }
 
-        // --- SISTEMA PIN E SICUREZZA ---
+        // --- SISTEMA PIN ---
         function requestEditMode() {
             if (editMode) { toggleEditMode(false); return; }
             const savedPin = localStorage.getItem('cucina_v8_pin');
@@ -385,10 +372,7 @@
             if (document.getElementById('input-pin').value === localStorage.getItem('cucina_v8_pin')) { closeModals(); toggleEditMode(true); } 
             else { alert("❌ PIN Errato!"); document.getElementById('input-pin').value = ''; }
         }
-        function setupPin() {
-            const newPin = prompt("Nuovo PIN (4 cifre):");
-            if (newPin && newPin.length === 4 && !isNaN(newPin)) { localStorage.setItem('cucina_v8_pin', newPin); alert("✅ PIN aggiornato!"); } 
-        }
+        function setupPin() { const newPin = prompt("Nuovo PIN (4 cifre):"); if (newPin && newPin.length === 4 && !isNaN(newPin)) { localStorage.setItem('cucina_v8_pin', newPin); alert("✅ PIN aggiornato!"); } }
         function toggleEditMode(state) {
             editMode = state; document.body.classList.toggle('edit-mode', editMode);
             const btn = document.getElementById('sidebar-edit-status');
@@ -398,41 +382,24 @@
             renderApp();
         }
 
-        function toggleFIFO() {
-            isFifo = !isFifo;
-            const btn = document.getElementById('btn-fifo');
-            btn.style.color = isFifo ? "white" : "var(--text-muted)";
-            btn.style.background = isFifo ? "var(--accent)" : "transparent";
-            renderContent();
-        }
+        function toggleFIFO() { isFifo = !isFifo; const btn = document.getElementById('btn-fifo'); btn.style.color = isFifo ? "white" : "var(--text-muted)"; btn.style.background = isFifo ? "var(--accent)" : "transparent"; renderContent(); }
 
-        // --- DASHBOARD KPI ---
         function openDashboard() {
             if(!activeSede || !activeFolder) return;
-            const fol = appStructure.sedi[activeSede].folders[activeFolder];
-            let totVal = 0, expCount = 0, donePrep = 0, totPrep = 0;
-            const today = new Date(); today.setHours(0,0,0,0);
-
+            const fol = appStructure.sedi[activeSede].folders[activeFolder]; let totVal = 0, expCount = 0, donePrep = 0, totPrep = 0; const today = new Date(); today.setHours(0,0,0,0);
             fol.sections.forEach(sec => {
                 sec.items.forEach(i => {
                     const k = `${activeSede}_${activeFolder}_${sec.id}_${i.id}`; const st = appState[k] || {c:false, q:0};
                     const cat = appStructure.categories.find(c => c.id === i.catId) || {type: 'standard'};
-                    
-                    if(cat.type === 'magazzino') { if(i.cost) totVal += ((st.q || 0) * i.cost); } 
-                    else { totPrep++; if(st.c) donePrep++; }
-
+                    if(cat.type === 'magazzino') { if(i.cost) totVal += ((st.q || 0) * i.cost); } else { totPrep++; if(st.c) donePrep++; }
                     if(i.expiry) { let exp = new Date(i.expiry); exp.setHours(0,0,0,0); if(exp <= today) expCount++; }
                 });
             });
-
-            document.getElementById('dash-val').innerText = "€ " + totVal.toFixed(2);
-            document.getElementById('dash-exp').innerText = expCount;
-            document.getElementById('dash-prog').innerText = totPrep > 0 ? Math.round((donePrep/totPrep)*100) + "%" : "100%";
-            showModal('modal-dashboard');
-            if(window.innerWidth <= 768) document.getElementById('sidebar').classList.remove('open');
+            document.getElementById('dash-val').innerText = "€ " + totVal.toFixed(2); document.getElementById('dash-exp').innerText = expCount; document.getElementById('dash-prog').innerText = totPrep > 0 ? Math.round((donePrep/totPrep)*100) + "%" : "100%";
+            showModal('modal-dashboard'); if(window.innerWidth <= 768) document.getElementById('sidebar').classList.remove('open');
         }
 
-        // --- RENDERIZZA APP ---
+        // --- RENDER APP E MENU ---
         function renderApp() { renderSidebar(); renderFolders(); renderCategories(); renderContent(); }
         
         function renderSidebar() {
@@ -449,7 +416,7 @@
 
         function renderFolders() {
             const menu = document.getElementById('folders-menu'); menu.innerHTML = '';
-            if(!activeSede) return; document.getElementById('header-title').innerText = appStructure.sedi[activeSede].name;
+            if(!activeSede) return;
             Object.values(appStructure.sedi[activeSede].folders).forEach(f => {
                 menu.innerHTML += `<div class="folder-tab ${f.id===activeFolder?'active':''}" onclick="selectFolder('${f.id}')">
                     ${f.name} ${editMode ? `<i class="fa-solid fa-pen" style="color:var(--warning); margin-left:5px;" onclick="event.stopPropagation(); openFolderModal('${f.id}')"></i><i class="fa-solid fa-xmark" style="color:var(--danger); margin-left:5px;" onclick="event.stopPropagation(); deleteFolder('${f.id}')"></i>`:''}
@@ -459,14 +426,33 @@
         }
         function selectFolder(id) { activeFolder = id; renderContent(); renderFolders(); }
 
+        // --- RENDER CATEGORIE (FIX PROMEMORIA HEADER) ---
         function renderCategories() {
             const menu = document.getElementById('categories-filter-menu');
             menu.innerHTML = `<div class="nav-item ${activeCatFilter==='tutti'?'active':''}" onclick="setCatFilter('tutti')"><i class="fa-solid fa-border-all"></i> Vista Totale</div>`;
-            appStructure.categories.forEach(cat => { menu.innerHTML += `<div class="nav-item ${activeCatFilter===cat.id?'active':''}" onclick="setCatFilter('${cat.id}')"><i class="fa-solid fa-circle" style="color:${cat.color}"></i> ${cat.name}</div>`; });
-        }
-        function setCatFilter(id) { activeCatFilter = id; renderCategories(); renderContent(); if(window.innerWidth <= 768) document.getElementById('sidebar').classList.remove('open'); }
+            
+            let activeName = "Tutti i reparti";
+            let activeCol = "";
 
-        // --- RENDER CONTENUTI GRIGLIA ---
+            appStructure.categories.forEach(cat => { 
+                menu.innerHTML += `<div class="nav-item ${activeCatFilter===cat.id?'active':''}" onclick="setCatFilter('${cat.id}')"><i class="fa-solid fa-circle" style="color:${cat.color}"></i> ${cat.name}</div>`; 
+                if (activeCatFilter === cat.id) { activeName = cat.name; activeCol = cat.color; }
+            });
+
+            // Aggiorna l'intestazione superiore con il Filtro Attivo
+            const headerTitle = document.getElementById('header-title');
+            if(headerTitle) {
+                const sedeName = activeSede && appStructure.sedi[activeSede] ? appStructure.sedi[activeSede].name : 'Cucina ERP';
+                const filterBadge = activeCatFilter === 'tutti' 
+                    ? `<span style="font-size:10px; background:var(--bg); border: 1px solid var(--border); padding:3px 8px; border-radius:8px; margin-left:8px; vertical-align:middle; color:var(--text-muted);"><i class="fa-solid fa-border-all"></i> Nessun Filtro</span>`
+                    : `<span style="font-size:10px; background:var(--bg); border: 1px solid var(--border); padding:3px 8px; border-radius:8px; margin-left:8px; vertical-align:middle; font-weight:800;"><i class="fa-solid fa-circle" style="color:${activeCol}; font-size:8px;"></i> ${activeName.toUpperCase()}</span>`;
+                headerTitle.innerHTML = `${sedeName} ${filterBadge}`;
+            }
+
+            if(window.innerWidth <= 768) document.getElementById('sidebar').classList.remove('open');
+        }
+        function setCatFilter(id) { activeCatFilter = id; renderCategories(); renderContent(); }
+
         function checkExpiry(dateString) {
             if(!dateString) return "";
             let exp = new Date(dateString), today = new Date(); today.setHours(0,0,0,0); exp.setHours(0,0,0,0);
@@ -477,6 +463,7 @@
             return `<span class='sup-badge'>Scad: ${exp.toLocaleDateString()}</span>`;
         }
 
+        // --- RENDER GRIGLIA PRODOTTI ---
         function renderContent() {
             const container = document.getElementById('main-content'); container.innerHTML = '';
             const query = document.getElementById('search-input').value.toLowerCase().trim();
@@ -490,13 +477,7 @@
                     return matchCat && matchSearch;
                 });
 
-                if (isFifo) {
-                    itemsToShow.sort((a,b) => {
-                        let da = a.expiry ? new Date(a.expiry).getTime() : 9999999999999;
-                        let db = b.expiry ? new Date(b.expiry).getTime() : 9999999999999;
-                        return da - db;
-                    });
-                }
+                if (isFifo) { itemsToShow.sort((a,b) => { let da = a.expiry ? new Date(a.expiry).getTime() : 9999999999999; let db = b.expiry ? new Date(b.expiry).getTime() : 9999999999999; return da - db; }); }
 
                 if(itemsToShow.length===0 && !editMode) return;
 
@@ -513,7 +494,10 @@
                     if(st.c) done++;
 
                     const cat = appStructure.categories.find(c => c.id === item.catId) || {name:'-', color:'#ccc', type:'standard'};
-                    const badge = `<span class="role-badge" style="background:${cat.color}">${cat.name.substring(0,4).toUpperCase()}</span>`;
+                    
+                    // FIX UX: Mostra il nome per intero, non più troncato a 4 lettere!
+                    const badge = `<span class="role-badge" style="background:${cat.color}">${cat.name.toUpperCase()}</span>`;
+                    
                     const expAlert = checkExpiry(item.expiry);
                     const isAlert = (st.n && st.n.trim() !== "") ? '<span class="note-alert"></span>' : '';
                     
@@ -524,9 +508,7 @@
                             <b style="min-width:24px; text-align:center;">${st.q||0}</b>
                             <button class="btn-icon" style="width:28px; height:28px; border:none; color:var(--success);" onclick="updateQty('${k}', 1)">+</button>
                         </div>`;
-                    } else {
-                        action = `<div class="chk-btn ${st.c?'checked':''}" onclick="toggleCheck('${k}')"><i class="fa-solid fa-check"></i></div>`;
-                    }
+                    } else { action = `<div class="chk-btn ${st.c?'checked':''}" onclick="toggleCheck('${k}')"><i class="fa-solid fa-check"></i></div>`; }
 
                     html += `<tr class="${st.c && cat.type !== 'magazzino' ? 'is-done':''}">
                         <td style="width: 45%;"><span class="prod-name">${item.n} ${badge} ${isAlert}</span>
@@ -554,18 +536,11 @@
             }
         }
 
-        // --- GESTIONE STATO IN CUCINA ---
         function toggleCheck(k) { if(!appState[k]) appState[k]={c:false,n:'',q:0}; appState[k].c=!appState[k].c; if(navigator.vibrate && appState[k].c) navigator.vibrate(40); saveState(); renderContent(); }
         function updateState(k,f,v) { if(!appState[k]) appState[k]={c:false,n:'',q:0}; appState[k][f]=sanitize(v); saveState(); renderContent(); }
         function updateQty(k,a) { if(!appState[k]) appState[k]={c:false,n:'',q:0}; appState[k].q=(appState[k].q||0)+a; if(appState[k].q<0) appState[k].q=0; if(navigator.vibrate) navigator.vibrate(20); saveState(); renderContent(); }
-        
-        function smartReset(isAuto = false) {
-            if(isAuto || confirm("🧹 Azzerare spunte e note?\nL'inventario Magazzino NON verrà cancellato.")) {
-                for(let k in appState) { appState[k].c = false; appState[k].n = ''; } saveState(); renderContent();
-            }
-        }
+        function smartReset(isAuto = false) { if(isAuto || confirm("🧹 Azzerare spunte e note?\nL'inventario Magazzino NON verrà cancellato.")) { for(let k in appState) { appState[k].c = false; appState[k].n = ''; } saveState(); renderContent(); } }
 
-        // --- APERTURA E SALVATAGGIO MODALI ---
         function openSedeModal(id=null) { currentEdit={action:id?'edit':'new', id:id}; document.getElementById('input-sede-name').value = id ? appStructure.sedi[id].name : ''; showModal('modal-sede'); }
         function saveSede() { const n = sanitize(document.getElementById('input-sede-name').value); if(!n) return; if(currentEdit.action==='new'){ const id='sede_'+generateId(); appStructure.sedi[id] = {id, name:n, folders:{}}; activeSede=id; } else { appStructure.sedi[currentEdit.id].name=n; } saveStructure(); closeModals(); renderApp(); }
         function deleteSede(id) { if(confirm("Eliminare Sede?")) { delete appStructure.sedi[id]; activeSede = Object.keys(appStructure.sedi)[0]||null; saveStructure(); renderApp(); } }
@@ -578,7 +553,6 @@
         function saveSection() { const n = sanitize(document.getElementById('input-section-name').value), c = document.getElementById('input-section-color').value; if(!n) return; let arr = appStructure.sedi[activeSede].folders[activeFolder].sections; if(currentEdit.action==='new') arr.push({id:'s_'+generateId(), name:n, color:c, items:[]}); else { let s = arr.find(x=>x.id===currentEdit.id); s.name=n; s.color=c; } saveStructure(); closeModals(); renderContent(); }
         function deleteSection(id) { if(confirm("Eliminare Frigo?")) { appStructure.sedi[activeSede].folders[activeFolder].sections = appStructure.sedi[activeSede].folders[activeFolder].sections.filter(x=>x.id!==id); saveStructure(); renderContent(); } }
 
-        // GESTIONE PRODOTTI
         function openItemModal(secId, itemId=null) {
             currentEdit = { action: itemId ? 'edit' : 'new', secId: secId, itemId: itemId };
             const sel = document.getElementById('input-item-cat'); sel.innerHTML = '';
@@ -586,110 +560,56 @@
             
             if(itemId) {
                 const i = appStructure.sedi[activeSede].folders[activeFolder].sections.find(s=>s.id===secId).items.find(x=>x.id===itemId);
-                document.getElementById('input-item-name').value = i.n || '';
-                document.getElementById('input-item-cat').value = i.catId || appStructure.categories[0].id;
-                document.getElementById('input-item-supplier').value = i.supplier || '';
-                document.getElementById('input-item-ideal').value = i.idealQty || '';
-                document.getElementById('input-item-cost').value = i.cost || '';
-                document.getElementById('input-item-line').value = i.l || '';
-                document.getElementById('input-item-expiry').value = i.expiry || '';
-                document.getElementById('input-item-info').value = i.info || '';
-            } else {
-                ['name','supplier','ideal','cost','line','expiry','info'].forEach(id => document.getElementById('input-item-'+id).value = '');
-            }
+                document.getElementById('input-item-name').value = i.n || ''; document.getElementById('input-item-cat').value = i.catId || appStructure.categories[0].id; document.getElementById('input-item-supplier').value = i.supplier || ''; document.getElementById('input-item-ideal').value = i.idealQty || ''; document.getElementById('input-item-cost').value = i.cost || ''; document.getElementById('input-item-line').value = i.l || ''; document.getElementById('input-item-expiry').value = i.expiry || ''; document.getElementById('input-item-info').value = i.info || '';
+            } else { ['name','supplier','ideal','cost','line','expiry','info'].forEach(id => document.getElementById('input-item-'+id).value = ''); }
             showModal('modal-item');
         }
 
         function saveItem() {
             const n = sanitize(document.getElementById('input-item-name').value); if(!n) return;
             const sec = appStructure.sedi[activeSede].folders[activeFolder].sections.find(s=>s.id===currentEdit.secId);
-            
-            let iCost = document.getElementById('input-item-cost').value;
-            let iIdeal = document.getElementById('input-item-ideal').value;
-            
-            const data = {
-                n: n,
-                catId: document.getElementById('input-item-cat').value,
-                l: sanitize(document.getElementById('input-item-line').value),
-                supplier: sanitize(document.getElementById('input-item-supplier').value),
-                idealQty: iIdeal !== "" ? parseFloat(iIdeal) : 0,
-                cost: iCost !== "" ? parseFloat(iCost) : 0,
-                expiry: document.getElementById('input-item-expiry').value,
-                info: sanitize(document.getElementById('input-item-info').value)
-            };
-
-            if(currentEdit.action === 'edit') {
-                let item = sec.items.find(x=>x.id === currentEdit.itemId);
-                Object.keys(data).forEach(k => item[k] = data[k]);
-            } else {
-                data.id = 'i_'+generateId();
-                sec.items.push(data);
-            }
+            let iCost = document.getElementById('input-item-cost').value, iIdeal = document.getElementById('input-item-ideal').value;
+            const data = { n: n, catId: document.getElementById('input-item-cat').value, l: sanitize(document.getElementById('input-item-line').value), supplier: sanitize(document.getElementById('input-item-supplier').value), idealQty: iIdeal !== "" ? parseFloat(iIdeal) : 0, cost: iCost !== "" ? parseFloat(iCost) : 0, expiry: document.getElementById('input-item-expiry').value, info: sanitize(document.getElementById('input-item-info').value) };
+            if(currentEdit.action === 'edit') { let item = sec.items.find(x=>x.id === currentEdit.itemId); Object.keys(data).forEach(k => item[k] = data[k]); } else { data.id = 'i_'+generateId(); sec.items.push(data); }
             saveStructure(); closeModals(); renderContent();
         }
 
         function deleteItem(secId, itemId) { if(confirm("Eliminare Prodotto?")) { const s = appStructure.sedi[activeSede].folders[activeFolder].sections.find(x=>x.id===secId); s.items=s.items.filter(x=>x.id!==itemId); saveStructure(); renderContent(); } }
-        
         function moveSection(secId, dir) { let arr = appStructure.sedi[activeSede].folders[activeFolder].sections; let idx = arr.findIndex(s=>s.id===secId); if(idx<0 || (dir===-1 && idx===0) || (dir===1 && idx===arr.length-1)) return; let temp = arr[idx]; arr[idx] = arr[idx+dir]; arr[idx+dir] = temp; saveStructure(); renderContent(); }
         function moveItem(secId, itemId, dir) { let arr = appStructure.sedi[activeSede].folders[activeFolder].sections.find(s=>s.id===secId).items; let idx = arr.findIndex(i=>i.id===itemId); if(idx<0 || (dir===-1 && idx===0) || (dir===1 && idx===arr.length-1)) return; let temp = arr[idx]; arr[idx] = arr[idx+dir]; arr[idx+dir] = temp; saveStructure(); renderContent(); }
 
-        // --- GESTIONE CATEGORIE ---
         function openCategoryManager() { const list = document.getElementById('category-list-editor'); list.innerHTML = ''; appStructure.categories.forEach(cat => { list.innerHTML += `<div style="display:flex; justify-content:space-between; align-items:center; padding:10px; background:var(--bg); border-radius:8px; margin-bottom:5px;"><span style="font-weight:800;"><i class="fa-solid fa-circle" style="color:${cat.color}"></i> ${cat.name}</span><i class="fa-solid fa-trash" style="color:var(--danger); cursor:pointer;" onclick="deleteCategory('${cat.id}')"></i></div>`; }); const pal = document.getElementById('color-palette'); pal.innerHTML = ''; PALETTE.forEach(c => { pal.innerHTML += `<div class="color-dot ${selectedColor===c?'selected':''}" style="background:${c}" onclick="selectColor('${c}', this)"></div>`; }); showModal('modal-category-manager'); }
         function selectColor(c, el) { selectedColor = c; document.querySelectorAll('.color-dot').forEach(d => d.classList.remove('selected')); el.classList.add('selected'); }
         function addCategory() { const name = sanitize(document.getElementById('new-cat-name').value), type = document.getElementById('new-cat-type').value; if(!name) return; appStructure.categories.push({ id: 'cat_'+generateId(), name, color: selectedColor, type }); document.getElementById('new-cat-name').value = ''; saveStructure(); openCategoryManager(); renderCategories(); }
         function deleteCategory(id) { if(appStructure.categories.length > 1 && confirm("Eliminare categoria?")) { appStructure.categories = appStructure.categories.filter(c => c.id !== id); saveStructure(); openCategoryManager(); renderCategories(); } }
 
-        // --- REPORT & ESPORTAZIONI ---
         let reportTextToCopy = "", csvData = [];
         function generateReport() {
-            if(!activeSede || !activeFolder) return;
-            const fol = appStructure.sedi[activeSede].folders[activeFolder];
-            let prepList = [], orders = {}, totalValue = 0; csvData = [];
-
+            if(!activeSede || !activeFolder) return; const fol = appStructure.sedi[activeSede].folders[activeFolder]; let prepList = [], orders = {}, totalValue = 0; csvData = [];
             fol.sections.forEach(sec => {
                 sec.items.forEach(i => {
-                    const k = `${activeSede}_${activeFolder}_${sec.id}_${i.id}`; const st = appState[k];
-                    const cat = appStructure.categories.find(c => c.id === i.catId) || {type: 'standard'};
-                    
+                    const k = `${activeSede}_${activeFolder}_${sec.id}_${i.id}`; const st = appState[k]; const cat = appStructure.categories.find(c => c.id === i.catId) || {type: 'standard'};
                     if(st && st.n && st.n.trim() !== "") { prepList.push(`[${sec.name}] ${i.n} -> NOTA: ${st.n}`); csvData.push({ type: "PREP", sec: sec.name, prod: i.n, val: st.n }); }
                     if(cat.type === 'magazzino' && st && st.q !== undefined) {
                         let qty = st.q || 0; if(i.cost) totalValue += (qty * i.cost);
-                        if(i.idealQty && qty < i.idealQty) {
-                            let toOrder = i.idealQty - qty, sup = i.supplier ? i.supplier.toUpperCase() : 'GENERALE';
-                            if(!orders[sup]) orders[sup] = [];
-                            orders[sup].push(`${i.n}: Ordina ${toOrder} ${i.l ? '('+i.l+')' : ''}`);
-                            csvData.push({ type: "ORDINE - " + sup, sec: sec.name, prod: i.n, val: `Ordina ${toOrder}` });
-                        }
+                        if(i.idealQty && qty < i.idealQty) { let toOrder = i.idealQty - qty, sup = i.supplier ? i.supplier.toUpperCase() : 'GENERALE'; if(!orders[sup]) orders[sup] = []; orders[sup].push(`${i.n}: Ordina ${toOrder} ${i.l ? '('+i.l+')' : ''}`); csvData.push({ type: "ORDINE - " + sup, sec: sec.name, prod: i.n, val: `Ordina ${toOrder}` }); }
                     }
                 });
             });
-
-            let txt = `📋 REPORT CUCINA ERP\nData: ${new Date().toLocaleDateString()}\n\n`;
-            if(prepList.length > 0) { txt += `🔪 PREPARAZIONI / NOTE:\n`; prepList.forEach(p => txt += `- ${p}\n`); txt += `\n`; }
-            if(Object.keys(orders).length > 0) { txt += `🛒 SPESA (AUTOMATICA):\n`; for(let sup in orders) { txt += `\n🚚 ${sup}:\n`; orders[sup].forEach(o => txt += `- ${o}\n`); } txt += `\n`; }
-            if(totalValue > 0) txt += `💶 VALORE MAGAZZINO: € ${totalValue.toFixed(2)}\n`;
-            if(prepList.length === 0 && Object.keys(orders).length === 0) txt += "✅ Linea completata, magazzino a livello.";
-
-            reportTextToCopy = txt; document.getElementById('report-preview').innerText = txt;
-            showModal('modal-report'); if(window.innerWidth <= 768) document.getElementById('sidebar').classList.remove('open');
+            let txt = `📋 REPORT CUCINA ERP\nData: ${new Date().toLocaleDateString()}\n\n`; if(prepList.length > 0) { txt += `🔪 PREPARAZIONI / NOTE:\n`; prepList.forEach(p => txt += `- ${p}\n`); txt += `\n`; } if(Object.keys(orders).length > 0) { txt += `🛒 SPESA (AUTOMATICA):\n`; for(let sup in orders) { txt += `\n🚚 ${sup}:\n`; orders[sup].forEach(o => txt += `- ${o}\n`); } txt += `\n`; } if(totalValue > 0) txt += `💶 VALORE MAGAZZINO: € ${totalValue.toFixed(2)}\n`; if(prepList.length === 0 && Object.keys(orders).length === 0) txt += "✅ Linea completata, magazzino a livello.";
+            reportTextToCopy = txt; document.getElementById('report-preview').innerText = txt; showModal('modal-report'); if(window.innerWidth <= 768) document.getElementById('sidebar').classList.remove('open');
         }
-
         function copyReportText() { if(!reportTextToCopy) return; window.open("https://wa.me/?text=" + encodeURIComponent(reportTextToCopy), '_blank'); }
         function downloadReportExcel() { if(csvData.length===0) return alert("Nulla da esportare."); let csv = "data:text/csv;charset=utf-8,\uFEFFTIPO;SETTORE;PRODOTTO;DETTAGLIO\n"; csvData.forEach(r => { csv += `"${r.type}";"${r.sec}";"${r.prod}";"${r.val}"\n`; }); const link = document.createElement("a"); link.setAttribute("href", encodeURI(csv)); link.setAttribute("download", `Ordini_${new Date().toLocaleDateString().replace(/\//g,'-')}.csv`); document.body.appendChild(link); link.click(); document.body.removeChild(link); }
 
-        // --- SYNC CLOUD ---
         async function openSyncModal() {
-            if(!confirm("Salvare su Cloud per i colleghi?")) return;
-            document.getElementById('sync-indicator').style.display='block'; document.getElementById('sync-indicator').innerText="⏳ UP...";
-            try {
-                const res = await fetch('https://api.jsonbin.io/v3/b', { method:'POST', headers:{'Content-Type':'application/json','X-Master-Key':CLOUD_KEY,'X-Bin-Name':'App_V8.1_ERP'}, body:JSON.stringify(appStructure) });
-                const magicLink = window.location.href.split('?')[0] + '?bin=' + (await res.json()).metadata.id;
-                window.open("https://wa.me/?text=" + encodeURIComponent("👨‍🍳 *AGGIORNAMENTO CUCINA ERP V8.1*\n\nStruttura aggiornata. Clicca per sincronizzare:\n\n" + magicLink), '_blank');
-                document.getElementById('sync-indicator').innerText='☁️ CLOUD OK'; document.getElementById('sync-indicator').style.color='var(--success)';
-            } catch(e) { alert("⚠️ Errore Cloud."); document.getElementById('sync-indicator').innerText='❌ OFFLINE'; document.getElementById('sync-indicator').style.color='var(--danger)'; }
+            if(!confirm("Salvare su Cloud per i colleghi?")) return; document.getElementById('sync-indicator').style.display='block'; document.getElementById('sync-indicator').innerText="⏳ UP...";
+            try { const res = await fetch('https://api.jsonbin.io/v3/b', { method:'POST', headers:{'Content-Type':'application/json','X-Master-Key':CLOUD_KEY,'X-Bin-Name':'App_V8.2_ERP'}, body:JSON.stringify(appStructure) }); const magicLink = window.location.href.split('?')[0] + '?bin=' + (await res.json()).metadata.id; window.open("https://wa.me/?text=" + encodeURIComponent("👨‍🍳 *CUCINA ERP V8.2*\n\nStruttura aggiornata:\n\n" + magicLink), '_blank'); document.getElementById('sync-indicator').innerText='☁️ CLOUD OK'; document.getElementById('sync-indicator').style.color='var(--success)'; } catch(e) { alert("⚠️ Errore Cloud."); document.getElementById('sync-indicator').innerText='❌ OFFLINE'; document.getElementById('sync-indicator').style.color='var(--danger)'; }
         }
-
         function toggleTheme() { const t = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark'; document.documentElement.setAttribute('data-theme', t); localStorage.setItem('cucina_v8_theme', t); }
     </script>
+     
+
+
 </body>
 </html>
