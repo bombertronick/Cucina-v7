@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <title>Cucina ERP V8.1</title>
+    <title>Cucina ERP V8.4</title>
     
     <link href="https://fonts.googleapis.com/css2?family=Urbanist:wght@400;600;800&family=Poppins:wght@600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
@@ -29,7 +29,7 @@
         body { font-family: 'Urbanist', sans-serif; background: var(--bg); color: var(--text); display: flex; height: 100dvh; width: 100vw; overflow: hidden; overscroll-behavior: none; transition: background 0.3s, color 0.3s; }
         body.edit-mode { background: repeating-linear-gradient(45deg, var(--bg), var(--bg) 10px, rgba(245, 158, 11, 0.05) 10px, rgba(245, 158, 11, 0.05) 20px); }
         
-        /* Blocco scorrimento per modali */
+        /* Blocco scorrimento quando le finestre sono aperte */
         body.modal-open { overflow: hidden; position: fixed; width: 100%; height: 100%; }
 
         ::-webkit-scrollbar { width: 5px; height: 5px; }
@@ -54,7 +54,7 @@
         .view-title { font-weight: 800; font-size: 1.2rem; display: flex; align-items: center; gap: 10px; }
         .btn-icon { background: var(--bg); border: 1px solid var(--border); color: var(--text); width: 40px; height: 40px; border-radius: 10px; cursor: pointer; display: flex; justify-content: center; align-items: center; transition: 0.2s; font-size: 16px; flex-shrink: 0; }
 
-        /* --- TOOLBAR --- */
+        /* --- TOOLBAR E RICERCA --- */
         .toolbar { background: var(--card); border-bottom: 1px solid var(--border); padding: 10px 15px; display: flex; flex-direction: column; gap: 10px; z-index: 9; flex-shrink: 0; }
         .folders-nav { display: flex; overflow-x: auto; gap: 8px; scrollbar-width: none; -webkit-overflow-scrolling: touch; padding-bottom: 5px; }
         .folders-nav::-webkit-scrollbar { display: none; }
@@ -63,7 +63,7 @@
         .search-container { display: flex; gap: 10px; width: 100%; }
         .search-bar { flex: 1; padding: 10px 15px; border: 1px solid var(--border); border-radius: 8px; background: var(--bg); color: var(--text); font-family: inherit; font-size: 13px; }
 
-        /* --- GRIGLIA --- */
+        /* --- GRIGLIA CARDS --- */
         .content-scroll { flex: 1; min-height: 0; overflow-y: auto; -webkit-overflow-scrolling: touch; padding: 15px; padding-bottom: calc(200px + var(--safe-bottom)); display: flex; flex-direction: column; gap: 20px; }
         @media (min-width: 900px) { .content-scroll { display: grid; grid-template-columns: repeat(2, 1fr); align-content: start; padding: 25px; padding-bottom: 150px; } .toolbar { flex-direction: row; align-items: center; justify-content: space-between; } .search-container { width: 350px; } }
         @media (min-width: 1400px) { .content-scroll { grid-template-columns: repeat(3, 1fr); } }
@@ -73,11 +73,26 @@
         .card-progress-bg { position: absolute; bottom: 0; left: 0; width: 100%; height: 4px; background: rgba(0,0,0,0.2); }
         .card-progress-fill { height: 100%; background: var(--success); width: 0%; transition: width 0.4s ease; }
 
+        /* --- TABELLA E PRODOTTI --- */
         .table-container { overflow-x: auto; -webkit-overflow-scrolling: touch; }
         table { width: 100%; border-collapse: collapse; }
         td { padding: 12px 15px; border-bottom: 1px solid var(--border); vertical-align: middle; font-size: 14px; }
-        .prod-name { font-weight: 800; display: block; margin-bottom: 4px; font-size: 15px; }
-        .prod-meta { font-size: 11px; color: var(--text-muted); font-weight: 600; display: flex; flex-wrap: wrap; gap: 5px; align-items: center; }
+        
+        /* FIX UX: INCOLONNAMENTO PER SCHERMI PICCOLI (Risolve il bug dello screenshot) */
+        @media (max-width: 768px) {
+            tr { display: flex; flex-wrap: wrap; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--border); }
+            td { padding: 5px 15px; border-bottom: none !important; }
+            /* Il nome prende tutto lo spazio in alto */
+            td:nth-child(1) { width: 100% !important; padding-bottom: 8px; }
+            /* Nota a sinistra, Azione a destra sotto il nome */
+            td:nth-child(2) { width: 60% !important; }
+            td:nth-child(3) { width: 40% !important; display: flex; justify-content: flex-end; }
+            tr:last-child { border-bottom: none; }
+        }
+
+        .prod-name { font-weight: 800; display: block; margin-bottom: 4px; font-size: 15px; line-height: 1.3; }
+        .prod-meta { font-size: 12px; color: var(--text-muted); font-weight: 600; display: flex; flex-wrap: wrap; gap: 6px; align-items: center; line-height: 1.4; }
+        .prod-meta b { color: var(--text); font-weight: 800; }
         
         .color-dot { width: 24px; height: 24px; border-radius: 50%; cursor: pointer; border: 2px solid transparent; }
         .color-dot.selected { border-color: var(--accent); transform: scale(1.2); }
@@ -96,12 +111,11 @@
         body.edit-mode .edit-tools { display: flex; }
         .btn-action { border: none; padding: 12px 15px; border-radius: 10px; font-weight: 800; cursor: pointer; display: flex; justify-content: center; align-items: center; gap: 8px; font-size: 13px; width: 100%; transition: 0.2s;}
         
-        /* --- FINESTRE MODALI (AGGIORNATE V8.1) --- */
+        /* --- FINESTRE MODALI (MODALS) --- */
         .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); backdrop-filter: blur(3px); display: none; justify-content: center; align-items: flex-end; z-index: 2000; padding: 15px; padding-bottom: calc(15px + var(--safe-bottom)); }
         @media (min-width: 768px) { .modal-overlay { align-items: center; } }
         .modal-box { background: var(--card); width: 100%; max-width: 500px; border-radius: 20px; padding: 25px; max-height: 85dvh; overflow-y: auto; -webkit-overflow-scrolling: touch; display: flex; flex-direction: column; }
         
-        /* Nuova intestazione per le Modali */
         .modal-header { display: flex; align-items: center; gap: 15px; margin-bottom: 20px; padding-bottom: 15px; border-bottom: 1px solid var(--border); flex-shrink: 0; }
         .modal-back-btn { width: 35px; height: 35px; border-radius: 10px; background: var(--bg); border: 1px solid var(--border); display: flex; justify-content: center; align-items: center; cursor: pointer; color: var(--text); flex-shrink: 0; }
         .modal-title { font-weight: 800; font-size: 1.1rem; color: var(--primary); }
@@ -120,19 +134,6 @@
             .mobile-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 1000; display: none; }
             .sidebar.open + .mobile-overlay { display: block; }
         }
-                /* ========================================== */
-        /* FIX UX: ANTI-SCHIACCIAMENTO SU MOBILE      */
-        /* ========================================== */
-        @media (max-width: 768px) {
-            tr { display: flex; flex-wrap: wrap; align-items: center; padding: 12px 0; }
-            td { padding: 5px; border-bottom: none !important; }
-            /* Il nome del prodotto prende tutta la larghezza in alto */
-            td:nth-child(1) { width: 100% !important; padding-bottom: 10px; }
-            /* La Nota e il Contatore si mettono affiancati sotto il nome */
-            td:nth-child(2) { width: 55% !important; }
-            td:nth-child(3) { width: 45% !important; display: flex; justify-content: flex-end; }
-        }
-
     </style>
 </head>
 <body>
@@ -141,7 +142,7 @@
 
     <aside class="sidebar" id="sidebar">
         <div class="sidebar-header">
-            <h1>CUCINA ERP <span>v8.1</span></h1>
+            <h1>CUCINA ERP <span>v8.4</span></h1>
         </div>
 
         <nav class="nav-group">
@@ -197,10 +198,10 @@
                 <div class="modal-back-btn" style="position: absolute; left: 25px;" onclick="closeModals()"><i class="fa-solid fa-arrow-left"></i></div>
             </div>
             <i class="fa-solid fa-shield-halved" style="font-size:40px; color:var(--warning); margin-bottom:15px;"></i>
-            <h3 style="margin-bottom:10px;">Sblocco Sicurezza</h3>
-            <p style="font-size:13px; color:var(--text-muted); margin-bottom:20px;">Inserisci il PIN per modificare la struttura.</p>
+            <h3>Sblocco Sicurezza</h3>
+            <p style="font-size:13px; color:var(--text-muted); margin-bottom:20px;">PIN richiesto per le modifiche.</p>
             <input type="password" id="input-pin" style="width:100%; text-align:center; font-size:24px; letter-spacing:15px; padding:15px; border-radius:12px; border:1px solid var(--border); background:var(--bg); color:var(--text); outline:none;" maxlength="4" placeholder="••••">
-            <button class="btn-action" style="background:var(--accent); color:var(--primary); margin-top:20px;" onclick="verifyPin()">Conferma Sblocco</button>
+            <button class="btn-action" style="background:var(--accent); color:var(--primary); margin-top:20px;" onclick="verifyPin()">Conferma</button>
         </div>
     </div>
 
@@ -233,7 +234,6 @@
                 <div class="modal-back-btn" onclick="closeModals()"><i class="fa-solid fa-arrow-left"></i></div>
                 <div class="modal-title">🕒 Macchina del Tempo</div>
             </div>
-            <p style="font-size:12px; color:var(--text-muted); margin-bottom:15px;">Seleziona un backup per ripristinare la struttura a un giorno precedente in caso di errore.</p>
             <div id="backup-list" style="display:flex; flex-direction:column; gap:10px;"></div>
         </div>
     </div>
@@ -242,22 +242,30 @@
         <div class="modal-box">
             <div class="modal-header">
                 <div class="modal-back-btn" onclick="closeModals()"><i class="fa-solid fa-arrow-left"></i></div>
-                <div class="modal-title" id="modal-item-title">Scheda Prodotto</div>
+                <div class="modal-title" id="modal-item-title">Dettaglio Prodotto</div>
             </div>
             <div class="input-group"><label>Nome Prodotto *</label><input type="text" id="input-item-name"></div>
+            
             <div style="display:flex; gap:10px;">
-                <div class="input-group" style="flex:1;"><label>Fornitore</label><input type="text" id="input-item-supplier" placeholder="es. Macellaio"></div>
+                <div class="input-group" style="flex:1;"><label>Linea (L)</label><input type="text" id="input-item-line" placeholder="es. 2 contenitori"></div>
+                <div class="input-group" style="flex:1;"><label>Scorta (S)</label><input type="text" id="input-item-stock" placeholder="es. 1 busta"></div>
+            </div>
+
+            <div style="display:flex; gap:10px;">
+                <div class="input-group" style="flex:1;"><label>Giacenza Ideale (N°)</label><input type="number" id="input-item-ideal" placeholder="Per spesa auto"></div>
                 <div class="input-group" style="flex:1;"><label>Reparto / Cat.</label><select id="input-item-cat"></select></div>
             </div>
+
             <div style="display:flex; gap:10px;">
-                <div class="input-group" style="flex:1;"><label>Scorta Minima</label><input type="number" id="input-item-ideal"></div>
+                <div class="input-group" style="flex:1;"><label>Fornitore</label><input type="text" id="input-item-supplier"></div>
                 <div class="input-group" style="flex:1;"><label>Costo Unitario (€)</label><input type="number" step="0.01" id="input-item-cost"></div>
             </div>
+
             <div style="display:flex; gap:10px;">
-                <div class="input-group" style="flex:1;"><label>Unità Misura</label><input type="text" id="input-item-line" placeholder="es. Kg"></div>
                 <div class="input-group" style="flex:1;"><label>Scadenza HACCP</label><input type="date" id="input-item-expiry"></div>
+                <div class="input-group" style="flex:1;"><label>Info Extra</label><input type="text" id="input-item-info"></div>
             </div>
-            <div class="input-group" style="margin-bottom:0;"><label>Info / Ricetta / Grammature</label><input type="text" id="input-item-info"></div>
+
             <div style="margin-top:20px;">
                 <button class="btn-action" style="background:var(--accent); color:var(--primary);" onclick="saveItem()">Salva Prodotto</button>
             </div>
@@ -266,15 +274,14 @@
 
     <div class="modal-overlay" id="modal-sede"><div class="modal-box"><div class="modal-header"><div class="modal-back-btn" onclick="closeModals()"><i class="fa-solid fa-arrow-left"></i></div><div class="modal-title">Gestione Sede</div></div><div class="input-group"><label>Nome Sede</label><input type="text" id="input-sede-name"></div><button class="btn-action" style="background:var(--accent); color:var(--primary);" onclick="saveSede()">Salva</button></div></div>
     
-    <div class="modal-overlay" id="modal-folder"><div class="modal-box"><div class="modal-header"><div class="modal-back-btn" onclick="closeModals()"><i class="fa-solid fa-arrow-left"></i></div><div class="modal-title">Gestione Turno</div></div><div class="input-group"><label>Nome Turno / Giorno</label><input type="text" id="input-folder-name"></div><button class="btn-action" style="background:var(--accent); color:var(--primary);" onclick="saveFolder()">Salva</button></div></div>
+    <div class="modal-overlay" id="modal-folder"><div class="modal-box"><div class="modal-header"><div class="modal-back-btn" onclick="closeModals()"><i class="fa-solid fa-arrow-left"></i></div><div class="modal-title">Gestione Turno</div></div><div class="input-group"><label>Nome Turno</label><input type="text" id="input-folder-name"></div><button class="btn-action" style="background:var(--accent); color:var(--primary);" onclick="saveFolder()">Salva</button></div></div>
     
-    <div class="modal-overlay" id="modal-section"><div class="modal-box"><div class="modal-header"><div class="modal-back-btn" onclick="closeModals()"><i class="fa-solid fa-arrow-left"></i></div><div class="modal-title">Gestione Frigorifero</div></div><div class="input-group"><label>Nome</label><input type="text" id="input-section-name"></div><div class="input-group"><label>Colore</label><select id="input-section-color"><option value="#0f172a">Grigio</option><option value="#0984e3">Blu</option><option value="#d63031">Rosso</option><option value="#00b894">Verde</option></select></div><button class="btn-action" style="background:var(--accent); color:var(--primary);" onclick="saveSection()">Salva</button></div></div>
+    <div class="modal-overlay" id="modal-section"><div class="modal-box"><div class="modal-header"><div class="modal-back-btn" onclick="closeModals()"><i class="fa-solid fa-arrow-left"></i></div><div class="modal-title">Gestione Frigorifero</div></div><div class="input-group"><label>Nome</label><input type="text" id="input-section-name"></div><div class="input-group"><label>Reparto di appartenenza</label><select id="input-section-color"></select></div><button class="btn-action" style="background:var(--accent); color:var(--primary);" onclick="saveSection()">Salva</button></div></div>
     
-    <div class="modal-overlay" id="modal-category-manager"><div class="modal-box"><div class="modal-header"><div class="modal-back-btn" onclick="closeModals()"><i class="fa-solid fa-arrow-left"></i></div><div class="modal-title">Categorie e Filtri</div></div><div id="category-list-editor" style="margin-bottom:20px;"></div><div class="input-group"><label>Nuova Categoria</label><input type="text" id="new-cat-name"></div><div id="color-palette" style="display:flex; gap:10px; margin-bottom:15px; flex-wrap:wrap;"></div><div class="input-group"><label>Comportamento</label><select id="new-cat-type"><option value="standard">Standard (Spunta Verde)</option><option value="magazzino">Magazzino (Contatore +/-)</option></select></div><button class="btn-action" style="background:var(--success); color:white;" onclick="addCategory()">Aggiungi Categoria</button></div></div>
+    <div class="modal-overlay" id="modal-category-manager"><div class="modal-box"><div class="modal-header"><div class="modal-back-btn" onclick="closeModals()"><i class="fa-solid fa-arrow-left"></i></div><div class="modal-title">Categorie e Filtri</div></div><div id="category-list-editor" style="margin-bottom:20px;"></div><div class="input-group"><label>Nuova Categoria</label><input type="text" id="new-cat-name"></div><div id="color-palette" style="display:flex; gap:10px; margin-bottom:15px; flex-wrap:wrap;"></div><div class="input-group"><label>Tipo Comportamento</label><select id="new-cat-type"><option value="standard">Standard (Spunta)</option><option value="magazzino">Magazzino (+/-)</option></select></div><button class="btn-action" style="background:var(--success); color:white;" onclick="addCategory()">Aggiungi Categoria</button></div></div>
     
-    <div class="modal-overlay" id="modal-report"><div class="modal-box" style="max-width:650px;"><div class="modal-header"><div class="modal-back-btn" onclick="closeModals()"><i class="fa-solid fa-arrow-left"></i></div><div class="modal-title">Ordini e Reportistica</div></div><div id="report-preview" style="background:var(--bg); padding:15px; border-radius:12px; margin-bottom:20px; max-height:350px; overflow-y:auto; white-space:pre-wrap; font-family:monospace; font-size:13px; border:1px solid var(--border);"></div><div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;"><button class="btn-action" style="background:#25D366; color:white;" onclick="copyReportText()"><i class="fa-brands fa-whatsapp"></i> Invia Ordini</button><button class="btn-action" style="background:var(--primary); color:white;" onclick="downloadReportExcel()"><i class="fa-solid fa-file-excel"></i> Esporta CSV</button></div></div></div>
-           
-        <script>
+    <div class="modal-overlay" id="modal-report"><div class="modal-box" style="max-width:650px;"><div class="modal-header"><div class="modal-back-btn" onclick="closeModals()"><i class="fa-solid fa-arrow-left"></i></div><div class="modal-title">Report e Ordini</div></div><div id="report-preview" style="background:var(--bg); padding:15px; border-radius:12px; margin-bottom:20px; max-height:350px; overflow-y:auto; white-space:pre-wrap; font-family:monospace; font-size:13px; border:1px solid var(--border);"></div><div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;"><button class="btn-action" style="background:#25D366; color:white;" onclick="copyReportText()"><i class="fa-brands fa-whatsapp"></i> Invia Ordini</button><button class="btn-action" style="background:var(--primary); color:white;" onclick="downloadReportExcel()"><i class="fa-solid fa-file-excel"></i> Esporta CSV</button></div></div></div>
+    <script>
         const CLOUD_KEY = "$2a$10$cANUKKt8gusYBU0s1g35UeBKFJM21uWzSe/ugzWuHGeZhj6C7KEui";
         const PALETTE = ["#0f172a", "#0984e3", "#00b894", "#d63031", "#e67e22", "#8e44ad", "#fd79a8", "#00ced1"];
         
@@ -287,7 +294,7 @@
         function sanitize(str) { return (str || "").toString().replace(/[<>"]/g, "'").trim(); }
         function generateId() { return Math.random().toString(36).substr(2, 9); }
 
-        // --- GESTIONE FINESTRE E HISTORY API ---
+        // --- GESTIONE FINESTRE E HISTORY API (UX NATIVA) ---
         function showModal(modalId) {
             document.getElementById(modalId).style.display = 'flex';
             document.body.classList.add('modal-open');
@@ -297,11 +304,9 @@
         function closeModals(eventOrGoBack) {
             let goBack = typeof eventOrGoBack === 'boolean' ? eventOrGoBack : true;
             let wasOpen = false;
-            
             document.querySelectorAll('.modal-overlay').forEach(m => {
                 if(m.style.display === 'flex') { wasOpen = true; m.style.display = 'none'; }
             });
-            
             document.body.classList.remove('modal-open');
             if (wasOpen && goBack) history.back();
         }
@@ -370,16 +375,16 @@
         }
 
         function restoreBackup(key) {
-            if(confirm("ATTENZIONE: Sovrascriverai la struttura attuale con questo backup. Procedere?")) {
+            if(confirm("ATTENZIONE: Sovrascriverai la struttura con questo backup. Procedere?")) {
                 appStructure = JSON.parse(localStorage.getItem(key)); saveStructure(); closeModals(); renderApp(); alert("Backup Ripristinato!");
             }
         }
 
-        // --- SISTEMA PIN ---
+        // --- SICUREZZA ---
         function requestEditMode() {
             if (editMode) { toggleEditMode(false); return; }
             const savedPin = localStorage.getItem('cucina_v8_pin');
-            if (!savedPin) { if(confirm("Nessun PIN impostato. Vuoi usare '0000'?")) { localStorage.setItem('cucina_v8_pin', '0000'); toggleEditMode(true); } } 
+            if (!savedPin) { if(confirm("Nessun PIN. Vuoi usare '0000'?")) { localStorage.setItem('cucina_v8_pin', '0000'); toggleEditMode(true); } } 
             else { document.getElementById('input-pin').value = ''; showModal('modal-pin'); setTimeout(()=>document.getElementById('input-pin').focus(), 100); }
         }
         function verifyPin() {
@@ -387,6 +392,7 @@
             else { alert("❌ PIN Errato!"); document.getElementById('input-pin').value = ''; }
         }
         function setupPin() { const newPin = prompt("Nuovo PIN (4 cifre):"); if (newPin && newPin.length === 4 && !isNaN(newPin)) { localStorage.setItem('cucina_v8_pin', newPin); alert("✅ PIN aggiornato!"); } }
+        
         function toggleEditMode(state) {
             editMode = state; document.body.classList.toggle('edit-mode', editMode);
             const btn = document.getElementById('sidebar-edit-status');
@@ -413,7 +419,7 @@
             showModal('modal-dashboard'); if(window.innerWidth <= 768) document.getElementById('sidebar').classList.remove('open');
         }
 
-        // --- RENDER APP E MENU ---
+        // --- RENDER MENU E SEDI ---
         function renderApp() { renderSidebar(); renderFolders(); renderCategories(); renderContent(); }
         
         function renderSidebar() {
@@ -443,7 +449,7 @@
         function renderCategories() {
             const menu = document.getElementById('categories-filter-menu');
             menu.innerHTML = `<div class="nav-item ${activeCatFilter==='tutti'?'active':''}" onclick="setCatFilter('tutti')"><i class="fa-solid fa-border-all"></i> Vista Totale</div>`;
-            let activeName = "Tutti i reparti"; let activeCol = "";
+            let activeName = "Tutti i reparti", activeCol = "";
             appStructure.categories.forEach(cat => { 
                 menu.innerHTML += `<div class="nav-item ${activeCatFilter===cat.id?'active':''}" onclick="setCatFilter('${cat.id}')"><i class="fa-solid fa-circle" style="color:${cat.color}"></i> ${cat.name}</div>`; 
                 if (activeCatFilter === cat.id) { activeName = cat.name; activeCol = cat.color; }
@@ -471,7 +477,7 @@
             return `<span class='sup-badge'>Scad: ${exp.toLocaleDateString()}</span>`;
         }
 
-        // --- RENDER GRIGLIA PRODOTTI ---
+        // --- RENDER GRIGLIA PRINCIPALE ---
         function renderContent() {
             const container = document.getElementById('main-content'); container.innerHTML = '';
             const query = document.getElementById('search-input').value.toLowerCase().trim();
@@ -486,12 +492,11 @@
                 });
 
                 if (isFifo) { itemsToShow.sort((a,b) => { let da = a.expiry ? new Date(a.expiry).getTime() : 9999999999999; let db = b.expiry ? new Date(b.expiry).getTime() : 9999999999999; return da - db; }); }
-
                 if(itemsToShow.length===0 && !editMode) return;
 
                 const card = document.createElement('div'); card.className = 'card';
                 let html = `<div class="card-header" style="background:${sec.color}"><span>${sec.name}</span>
-                    ${editMode && query==='' && !isFifo ? `<div style="display:flex; gap:12px;"><i class="fa-solid fa-arrow-up" onclick="moveSection('${sec.id}', -1)"></i><i class="fa-solid fa-arrow-down" onclick="moveSection('${sec.id}', 1)"></i><i class="fa-solid fa-pen" style="color:white;" onclick="openSectionModal('${sec.id}')"></i><i class="fa-solid fa-trash" style="color:#ffb3b3;" onclick="deleteSection('${sec.id}')"></i></div>`:''}
+                    ${editMode && query==='' && !isFifo ? `<div style="display:flex; gap:12px;"><i class="fa-solid fa-arrow-up" onclick="moveSection('${sec.id}', -1)"></i><i class="fa-solid fa-arrow-down" onclick="moveSection('${sec.id}', 1)"></i><i class="fa-solid fa-pen" onclick="openSectionModal('${sec.id}')"></i><i class="fa-solid fa-trash" onclick="deleteSection('${sec.id}')"></i></div>`:''}
                     <div class="card-progress-bg"><div class="card-progress-fill" id="prog-${sec.id}"></div></div></div>
                     <div class="table-container"><table>`;
                 
@@ -506,6 +511,13 @@
                     const expAlert = checkExpiry(item.expiry);
                     const isAlert = (st.n && st.n.trim() !== "") ? '<span class="note-alert"></span>' : '';
                     
+                    // COSTRUZIONE STRINGA METADATI (L e S)
+                    let metaInfo = "";
+                    if(item.l) metaInfo += `<b>L:</b> ${item.l} `;
+                    if(item.s) metaInfo += `${metaInfo ? '| ' : ''}<b>S:</b> ${item.s} `;
+                    if(item.idealQty) metaInfo += `${metaInfo ? '| ' : ''}<b>Ideale:</b> ${item.idealQty} `;
+                    if(item.supplier) metaInfo += `${metaInfo ? '| ' : ''}<span class="sup-badge"><i class="fa-solid fa-truck"></i> ${item.supplier}</span> `;
+
                     let action = '';
                     if(cat.type === 'magazzino') {
                         action = `<div style="display:flex; align-items:center; gap:5px; background:var(--bg); padding:5px; border-radius:8px; border:1px solid var(--border);">
@@ -516,15 +528,12 @@
                     } else { action = `<div class="chk-btn ${st.c?'checked':''}" onclick="toggleCheck('${k}')"><i class="fa-solid fa-check"></i></div>`; }
 
                     html += `<tr class="${st.c && cat.type !== 'magazzino' ? 'is-done':''}">
-                        <td style="width: 45%;"><span class="prod-name">${item.n} ${badge} ${isAlert}</span>
-                            <span class="prod-meta">
-                                ${item.supplier ? `<span class="sup-badge"><i class="fa-solid fa-truck"></i> ${item.supplier}</span>` : ''} 
-                                ${item.idealQty ? `Ideale: ${item.idealQty}` : ''} ${item.l ? `(${item.l})` : ''} ${expAlert}
-                            </span>
+                        <td><span class="prod-name">${item.n} ${badge} ${isAlert}</span>
+                            <span class="prod-meta">${metaInfo} ${expAlert}</span>
                             ${editMode && query==='' && !isFifo ? `<div class="edit-tools"><button class="btn-action" style="background:var(--bg); border:1px solid var(--border);" onclick="moveItem('${sec.id}','${item.id}', -1)">⬆️</button><button class="btn-action" style="background:var(--bg); border:1px solid var(--border);" onclick="moveItem('${sec.id}','${item.id}', 1)">⬇️</button><button class="btn-action" style="background:var(--warning); color:#000;" onclick="openItemModal('${sec.id}','${item.id}')"><i class="fa-solid fa-pen"></i></button><button class="btn-action" style="background:var(--danger); color:white; flex: 0 0 40px;" onclick="deleteItem('${sec.id}','${item.id}')"><i class="fa-solid fa-trash"></i></button></div>`:''}
                         </td>
-                        <td style="width: 30%;"><input type="text" class="note-input" value="${st.n}" onblur="updateState('${k}','n',this.value)" placeholder="Scrivi nota..."></td>
-                        <td style="width: 25%; text-align:center;">${action}</td>
+                        <td><input type="text" class="note-input" value="${st.n}" onblur="updateState('${k}','n',this.value)" placeholder="Scrivi nota..."></td>
+                        <td>${action}</td>
                     </tr>`;
                 });
                 html += `</table></div>`;
@@ -546,6 +555,7 @@
         function updateQty(k,a) { if(!appState[k]) appState[k]={c:false,n:'',q:0}; appState[k].q=(appState[k].q||0)+a; if(appState[k].q<0) appState[k].q=0; if(navigator.vibrate) navigator.vibrate(20); saveState(); renderContent(); }
         function smartReset(isAuto = false) { if(isAuto || confirm("🧹 Azzerare spunte e note?\nL'inventario Magazzino NON verrà cancellato.")) { for(let k in appState) { appState[k].c = false; appState[k].n = ''; } saveState(); renderContent(); } }
 
+        // --- GESTIONE FINESTRE CREAZIONE/MODIFICA ---
         function openSedeModal(id=null) { currentEdit={action:id?'edit':'new', id:id}; document.getElementById('input-sede-name').value = id ? appStructure.sedi[id].name : ''; showModal('modal-sede'); }
         function saveSede() { const n = sanitize(document.getElementById('input-sede-name').value); if(!n) return; if(currentEdit.action==='new'){ const id='sede_'+generateId(); appStructure.sedi[id] = {id, name:n, folders:{}}; activeSede=id; } else { appStructure.sedi[currentEdit.id].name=n; } saveStructure(); closeModals(); renderApp(); }
         function deleteSede(id) { if(confirm("Eliminare Sede?")) { delete appStructure.sedi[id]; activeSede = Object.keys(appStructure.sedi)[0]||null; saveStructure(); renderApp(); } }
@@ -554,28 +564,14 @@
         function saveFolder() { const n = sanitize(document.getElementById('input-folder-name').value); if(!n) return; if(currentEdit.action==='new'){ const id='f_'+generateId(); appStructure.sedi[activeSede].folders[id] = {id, name:n, sections:[]}; activeFolder=id; } else { appStructure.sedi[activeSede].folders[currentEdit.id].name=n; } saveStructure(); closeModals(); renderFolders(); renderContent(); }
         function deleteFolder(id) { if(confirm("Eliminare Turno?")) { delete appStructure.sedi[activeSede].folders[id]; activeFolder = Object.keys(appStructure.sedi[activeSede].folders)[0]||null; saveStructure(); renderFolders(); renderContent(); } }
 
-        // --- FIX LOGICO: GESTIONE COLORE FRIGORIFERO ---
         function openSectionModal(id=null) { 
             currentEdit={action:id?'edit':'new', id:id}; 
-            
-            // Popoliamo il Select NON con colori a caso, ma con i nomi delle tue Categorie!
-            const selCol = document.getElementById('input-section-color');
-            selCol.innerHTML = '';
-            appStructure.categories.forEach(c => {
-                selCol.innerHTML += `<option value="${c.color}">${c.name}</option>`;
-            });
-
-            if(id){ 
-                const s = appStructure.sedi[activeSede].folders[activeFolder].sections.find(x=>x.id===id); 
-                document.getElementById('input-section-name').value=s.name; 
-                selCol.value = s.color; // Mantiene il colore precedentemente salvato
-            } else { 
-                document.getElementById('input-section-name').value=''; 
-                if(appStructure.categories.length > 0) selCol.value = appStructure.categories[0].color;
-            } 
+            const selCol = document.getElementById('input-section-color'); selCol.innerHTML = '';
+            appStructure.categories.forEach(c => { selCol.innerHTML += `<option value="${c.color}">${c.name}</option>`; });
+            if(id){ const s = appStructure.sedi[activeSede].folders[activeFolder].sections.find(x=>x.id===id); document.getElementById('input-section-name').value=s.name; selCol.value = s.color; } 
+            else { document.getElementById('input-section-name').value=''; if(appStructure.categories.length > 0) selCol.value = appStructure.categories[0].color; } 
             showModal('modal-section'); 
         }
-
         function saveSection() { const n = sanitize(document.getElementById('input-section-name').value), c = document.getElementById('input-section-color').value; if(!n) return; let arr = appStructure.sedi[activeSede].folders[activeFolder].sections; if(currentEdit.action==='new') arr.push({id:'s_'+generateId(), name:n, color:c, items:[]}); else { let s = arr.find(x=>x.id===currentEdit.id); s.name=n; s.color=c; } saveStructure(); closeModals(); renderContent(); }
         function deleteSection(id) { if(confirm("Eliminare Frigo?")) { appStructure.sedi[activeSede].folders[activeFolder].sections = appStructure.sedi[activeSede].folders[activeFolder].sections.filter(x=>x.id!==id); saveStructure(); renderContent(); } }
 
@@ -586,8 +582,16 @@
             
             if(itemId) {
                 const i = appStructure.sedi[activeSede].folders[activeFolder].sections.find(s=>s.id===secId).items.find(x=>x.id===itemId);
-                document.getElementById('input-item-name').value = i.n || ''; document.getElementById('input-item-cat').value = i.catId || appStructure.categories[0].id; document.getElementById('input-item-supplier').value = i.supplier || ''; document.getElementById('input-item-ideal').value = i.idealQty || ''; document.getElementById('input-item-cost').value = i.cost || ''; document.getElementById('input-item-line').value = i.l || ''; document.getElementById('input-item-expiry').value = i.expiry || ''; document.getElementById('input-item-info').value = i.info || '';
-            } else { ['name','supplier','ideal','cost','line','expiry','info'].forEach(id => document.getElementById('input-item-'+id).value = ''); }
+                document.getElementById('input-item-name').value = i.n || ''; 
+                document.getElementById('input-item-cat').value = i.catId || appStructure.categories[0].id; 
+                document.getElementById('input-item-supplier').value = i.supplier || ''; 
+                document.getElementById('input-item-line').value = i.l || '';  // Linea (Testo)
+                document.getElementById('input-item-stock').value = i.s || ''; // Scorta (Testo)
+                document.getElementById('input-item-ideal').value = i.idealQty || ''; // Giacenza Ideale (Numero)
+                document.getElementById('input-item-cost').value = i.cost || ''; 
+                document.getElementById('input-item-expiry').value = i.expiry || ''; 
+                document.getElementById('input-item-info').value = i.info || '';
+            } else { ['name','supplier','line','stock','ideal','cost','expiry','info'].forEach(id => document.getElementById('input-item-'+id).value = ''); }
             showModal('modal-item');
         }
 
@@ -595,8 +599,21 @@
             const n = sanitize(document.getElementById('input-item-name').value); if(!n) return;
             const sec = appStructure.sedi[activeSede].folders[activeFolder].sections.find(s=>s.id===currentEdit.secId);
             let iCost = document.getElementById('input-item-cost').value, iIdeal = document.getElementById('input-item-ideal').value;
-            const data = { n: n, catId: document.getElementById('input-item-cat').value, l: sanitize(document.getElementById('input-item-line').value), supplier: sanitize(document.getElementById('input-item-supplier').value), idealQty: iIdeal !== "" ? parseFloat(iIdeal) : 0, cost: iCost !== "" ? parseFloat(iCost) : 0, expiry: document.getElementById('input-item-expiry').value, info: sanitize(document.getElementById('input-item-info').value) };
-            if(currentEdit.action === 'edit') { let item = sec.items.find(x=>x.id === currentEdit.itemId); Object.keys(data).forEach(k => item[k] = data[k]); } else { data.id = 'i_'+generateId(); sec.items.push(data); }
+            
+            const data = { 
+                n: n, 
+                catId: document.getElementById('input-item-cat').value, 
+                l: sanitize(document.getElementById('input-item-line').value), 
+                s: sanitize(document.getElementById('input-item-stock').value),
+                supplier: sanitize(document.getElementById('input-item-supplier').value), 
+                idealQty: iIdeal !== "" ? parseFloat(iIdeal) : 0, 
+                cost: iCost !== "" ? parseFloat(iCost) : 0, 
+                expiry: document.getElementById('input-item-expiry').value, 
+                info: sanitize(document.getElementById('input-item-info').value) 
+            };
+            
+            if(currentEdit.action === 'edit') { let item = sec.items.find(x=>x.id === currentEdit.itemId); Object.keys(data).forEach(k => item[k] = data[k]); } 
+            else { data.id = 'i_'+generateId(); sec.items.push(data); }
             saveStructure(); closeModals(); renderContent();
         }
 
@@ -609,6 +626,7 @@
         function addCategory() { const name = sanitize(document.getElementById('new-cat-name').value), type = document.getElementById('new-cat-type').value; if(!name) return; appStructure.categories.push({ id: 'cat_'+generateId(), name, color: selectedColor, type }); document.getElementById('new-cat-name').value = ''; saveStructure(); openCategoryManager(); renderCategories(); }
         function deleteCategory(id) { if(appStructure.categories.length > 1 && confirm("Eliminare categoria?")) { appStructure.categories = appStructure.categories.filter(c => c.id !== id); saveStructure(); openCategoryManager(); renderCategories(); } }
 
+        // --- REPORTISTICA ---
         let reportTextToCopy = "", csvData = [];
         function generateReport() {
             if(!activeSede || !activeFolder) return; const fol = appStructure.sedi[activeSede].folders[activeFolder]; let prepList = [], orders = {}, totalValue = 0; csvData = [];
@@ -618,7 +636,7 @@
                     if(st && st.n && st.n.trim() !== "") { prepList.push(`[${sec.name}] ${i.n} -> NOTA: ${st.n}`); csvData.push({ type: "PREP", sec: sec.name, prod: i.n, val: st.n }); }
                     if(cat.type === 'magazzino' && st && st.q !== undefined) {
                         let qty = st.q || 0; if(i.cost) totalValue += (qty * i.cost);
-                        if(i.idealQty && qty < i.idealQty) { let toOrder = i.idealQty - qty, sup = i.supplier ? i.supplier.toUpperCase() : 'GENERALE'; if(!orders[sup]) orders[sup] = []; orders[sup].push(`${i.n}: Ordina ${toOrder} ${i.l ? '('+i.l+')' : ''}`); csvData.push({ type: "ORDINE - " + sup, sec: sec.name, prod: i.n, val: `Ordina ${toOrder}` }); }
+                        if(i.idealQty && qty < i.idealQty) { let toOrder = i.idealQty - qty, sup = i.supplier ? i.supplier.toUpperCase() : 'GENERALE'; if(!orders[sup]) orders[sup] = []; orders[sup].push(`${i.n}: Ordina ${toOrder}`); csvData.push({ type: "ORDINE - " + sup, sec: sec.name, prod: i.n, val: `Ordina ${toOrder}` }); }
                     }
                 });
             });
@@ -630,13 +648,9 @@
 
         async function openSyncModal() {
             if(!confirm("Salvare su Cloud per i colleghi?")) return; document.getElementById('sync-indicator').style.display='block'; document.getElementById('sync-indicator').innerText="⏳ UP...";
-            try { const res = await fetch('https://api.jsonbin.io/v3/b', { method:'POST', headers:{'Content-Type':'application/json','X-Master-Key':CLOUD_KEY,'X-Bin-Name':'App_V8.3_ERP'}, body:JSON.stringify(appStructure) }); const magicLink = window.location.href.split('?')[0] + '?bin=' + (await res.json()).metadata.id; window.open("https://wa.me/?text=" + encodeURIComponent("👨‍🍳 *CUCINA ERP V8.3*\n\nStruttura aggiornata:\n\n" + magicLink), '_blank'); document.getElementById('sync-indicator').innerText='☁️ CLOUD OK'; document.getElementById('sync-indicator').style.color='var(--success)'; } catch(e) { alert("⚠️ Errore Cloud."); document.getElementById('sync-indicator').innerText='❌ OFFLINE'; document.getElementById('sync-indicator').style.color='var(--danger)'; }
+            try { const res = await fetch('https://api.jsonbin.io/v3/b', { method:'POST', headers:{'Content-Type':'application/json','X-Master-Key':CLOUD_KEY,'X-Bin-Name':'App_V8.4_ERP'}, body:JSON.stringify(appStructure) }); const magicLink = window.location.href.split('?')[0] + '?bin=' + (await res.json()).metadata.id; window.open("https://wa.me/?text=" + encodeURIComponent("👨‍🍳 *CUCINA ERP V8.4*\n\nStruttura aggiornata:\n\n" + magicLink), '_blank'); document.getElementById('sync-indicator').innerText='☁️ CLOUD OK'; document.getElementById('sync-indicator').style.color='var(--success)'; } catch(e) { alert("⚠️ Errore Cloud."); document.getElementById('sync-indicator').innerText='❌ OFFLINE'; document.getElementById('sync-indicator').style.color='var(--danger)'; }
         }
         function toggleTheme() { const t = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark'; document.documentElement.setAttribute('data-theme', t); localStorage.setItem('cucina_v8_theme', t); }
     </script>
-
-     
-
-
 </body>
 </html>
