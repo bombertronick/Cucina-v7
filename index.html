@@ -120,6 +120,19 @@
             .mobile-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 1000; display: none; }
             .sidebar.open + .mobile-overlay { display: block; }
         }
+                /* ========================================== */
+        /* FIX UX: ANTI-SCHIACCIAMENTO SU MOBILE      */
+        /* ========================================== */
+        @media (max-width: 768px) {
+            tr { display: flex; flex-wrap: wrap; align-items: center; padding: 12px 0; }
+            td { padding: 5px; border-bottom: none !important; }
+            /* Il nome del prodotto prende tutta la larghezza in alto */
+            td:nth-child(1) { width: 100% !important; padding-bottom: 10px; }
+            /* La Nota e il Contatore si mettono affiancati sotto il nome */
+            td:nth-child(2) { width: 55% !important; }
+            td:nth-child(3) { width: 45% !important; display: flex; justify-content: flex-end; }
+        }
+
     </style>
 </head>
 <body>
