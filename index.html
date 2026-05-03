@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <title>Cucina ERP V8</title>
+    <title>Cucina ERP V8.1</title>
     
     <link href="https://fonts.googleapis.com/css2?family=Urbanist:wght@400;600;800&family=Poppins:wght@600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
@@ -25,8 +25,12 @@
         }
 
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; outline: none; margin: 0; padding: 0; }
+        
         body { font-family: 'Urbanist', sans-serif; background: var(--bg); color: var(--text); display: flex; height: 100dvh; width: 100vw; overflow: hidden; overscroll-behavior: none; transition: background 0.3s, color 0.3s; }
         body.edit-mode { background: repeating-linear-gradient(45deg, var(--bg), var(--bg) 10px, rgba(245, 158, 11, 0.05) 10px, rgba(245, 158, 11, 0.05) 20px); }
+        
+        /* Blocco scorrimento per modali */
+        body.modal-open { overflow: hidden; position: fixed; width: 100%; height: 100%; }
 
         ::-webkit-scrollbar { width: 5px; height: 5px; }
         ::-webkit-scrollbar-track { background: transparent; }
@@ -59,7 +63,7 @@
         .search-container { display: flex; gap: 10px; width: 100%; }
         .search-bar { flex: 1; padding: 10px 15px; border: 1px solid var(--border); border-radius: 8px; background: var(--bg); color: var(--text); font-family: inherit; font-size: 13px; }
 
-        /* --- GRIGLIA E SCHEDE --- */
+        /* --- GRIGLIA --- */
         .content-scroll { flex: 1; min-height: 0; overflow-y: auto; -webkit-overflow-scrolling: touch; padding: 15px; padding-bottom: calc(200px + var(--safe-bottom)); display: flex; flex-direction: column; gap: 20px; }
         @media (min-width: 900px) { .content-scroll { display: grid; grid-template-columns: repeat(2, 1fr); align-content: start; padding: 25px; padding-bottom: 150px; } .toolbar { flex-direction: row; align-items: center; justify-content: space-between; } .search-container { width: 350px; } }
         @media (min-width: 1400px) { .content-scroll { grid-template-columns: repeat(3, 1fr); } }
@@ -75,7 +79,6 @@
         .prod-name { font-weight: 800; display: block; margin-bottom: 4px; font-size: 15px; }
         .prod-meta { font-size: 11px; color: var(--text-muted); font-weight: 600; display: flex; flex-wrap: wrap; gap: 5px; align-items: center; }
         
-        /* --- BADGE E BOTTONI --- */
         .color-dot { width: 24px; height: 24px; border-radius: 50%; cursor: pointer; border: 2px solid transparent; }
         .color-dot.selected { border-color: var(--accent); transform: scale(1.2); }
         .role-badge { font-size: 9px; padding: 2px 6px; border-radius: 6px; color: white; vertical-align: middle; font-weight: 800; }
@@ -84,8 +87,7 @@
         @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.4; } 100% { opacity: 1; } }
 
         .note-input { width: 100%; border: 1px solid var(--border); border-radius: 8px; padding: 10px; font-size: 13px; background: var(--bg); color: var(--text); }
-        .chk-wrap { display: flex; justify-content: center; }
-        .chk-btn { width: 40px; height: 40px; border-radius: 12px; border: 2px solid var(--border); background: var(--bg); display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.15s; color: transparent; }
+        .chk-btn { width: 40px; height: 40px; border-radius: 12px; border: 2px solid var(--border); background: var(--bg); display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.15s; color: transparent; margin: 0 auto; }
         .chk-btn.checked { background: var(--success); border-color: var(--success); color: white; transform: scale(1.05); }
         tr.is-done { opacity: 0.5; background: rgba(16, 185, 129, 0.05); }
         tr.is-done .prod-name { text-decoration: line-through; color: var(--success); }
@@ -94,15 +96,20 @@
         body.edit-mode .edit-tools { display: flex; }
         .btn-action { border: none; padding: 12px 15px; border-radius: 10px; font-weight: 800; cursor: pointer; display: flex; justify-content: center; align-items: center; gap: 8px; font-size: 13px; width: 100%; transition: 0.2s;}
         
-        /* --- FINESTRE MODALI --- */
+        /* --- FINESTRE MODALI (AGGIORNATE V8.1) --- */
         .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); backdrop-filter: blur(3px); display: none; justify-content: center; align-items: flex-end; z-index: 2000; padding: 15px; padding-bottom: calc(15px + var(--safe-bottom)); }
         @media (min-width: 768px) { .modal-overlay { align-items: center; } }
-        .modal-box { background: var(--card); width: 100%; max-width: 500px; border-radius: 20px; padding: 25px; max-height: 85dvh; overflow-y: auto; -webkit-overflow-scrolling: touch; }
+        .modal-box { background: var(--card); width: 100%; max-width: 500px; border-radius: 20px; padding: 25px; max-height: 85dvh; overflow-y: auto; -webkit-overflow-scrolling: touch; display: flex; flex-direction: column; }
+        
+        /* Nuova intestazione per le Modali */
+        .modal-header { display: flex; align-items: center; gap: 15px; margin-bottom: 20px; padding-bottom: 15px; border-bottom: 1px solid var(--border); flex-shrink: 0; }
+        .modal-back-btn { width: 35px; height: 35px; border-radius: 10px; background: var(--bg); border: 1px solid var(--border); display: flex; justify-content: center; align-items: center; cursor: pointer; color: var(--text); flex-shrink: 0; }
+        .modal-title { font-weight: 800; font-size: 1.1rem; color: var(--primary); }
+        
         .input-group { margin-bottom: 15px; }
         .input-group label { display: block; font-size: 11px; font-weight: 800; color: var(--text-muted); margin-bottom: 6px; text-transform: uppercase; }
         .input-group input, .input-group select { width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 10px; font-size: 14px; background: var(--bg); color: var(--text); }
 
-        /* DASHBOARD METRICS */
         .metric-box { background: var(--bg); border: 1px solid var(--border); padding: 15px; border-radius: 12px; text-align: center; }
         .metric-val { font-size: 24px; font-weight: 800; color: var(--primary); margin-top: 5px; }
 
@@ -121,7 +128,7 @@
 
     <aside class="sidebar" id="sidebar">
         <div class="sidebar-header">
-            <h1>CUCINA ERP <span>v8</span></h1>
+            <h1>CUCINA ERP <span>v8.1</span></h1>
         </div>
 
         <nav class="nav-group">
@@ -173,21 +180,24 @@
 
     <div class="modal-overlay" id="modal-pin">
         <div class="modal-box" style="max-width: 350px; text-align: center;">
-            <i class="fa-solid fa-shield-halved" style="font-size:40px; color:var(--warning); margin-bottom:15px;"></i>
-            <h3>Sblocco Sicurezza</h3>
-            <p style="font-size:13px; color:var(--text-muted); margin-bottom:15px;">Inserisci il PIN per modificare la struttura.</p>
-            <input type="password" id="input-pin" style="width:100%; text-align:center; font-size:24px; letter-spacing:15px; padding:15px; border-radius:12px; border:1px solid var(--border); background:var(--bg); color:var(--text); outline:none;" maxlength="4" placeholder="••••">
-            <div style="display:flex; gap:10px; margin-top:20px;">
-                <button class="btn-action" style="background:var(--border);" onclick="closeModals()">Annulla</button>
-                <button class="btn-action" style="background:var(--accent); color:var(--primary);" onclick="verifyPin()">Conferma</button>
+            <div class="modal-header" style="justify-content: center; border-bottom: none; margin-bottom: 0;">
+                <div class="modal-back-btn" style="position: absolute; left: 25px;" onclick="closeModals()"><i class="fa-solid fa-arrow-left"></i></div>
             </div>
+            <i class="fa-solid fa-shield-halved" style="font-size:40px; color:var(--warning); margin-bottom:15px;"></i>
+            <h3 style="margin-bottom:10px;">Sblocco Sicurezza</h3>
+            <p style="font-size:13px; color:var(--text-muted); margin-bottom:20px;">Inserisci il PIN per modificare la struttura.</p>
+            <input type="password" id="input-pin" style="width:100%; text-align:center; font-size:24px; letter-spacing:15px; padding:15px; border-radius:12px; border:1px solid var(--border); background:var(--bg); color:var(--text); outline:none;" maxlength="4" placeholder="••••">
+            <button class="btn-action" style="background:var(--accent); color:var(--primary); margin-top:20px;" onclick="verifyPin()">Conferma Sblocco</button>
         </div>
     </div>
 
     <div class="modal-overlay" id="modal-dashboard">
         <div class="modal-box">
-            <h3>📊 Analisi e KPI</h3>
-            <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:20px; margin-bottom:20px;">
+            <div class="modal-header">
+                <div class="modal-back-btn" onclick="closeModals()"><i class="fa-solid fa-arrow-left"></i></div>
+                <div class="modal-title">📊 Analisi e KPI</div>
+            </div>
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:10px;">
                 <div class="metric-box">
                     <div style="font-size:11px; font-weight:800; color:var(--text-muted);">VALORE MAGAZZINO</div>
                     <div class="metric-val" id="dash-val">€ 0.00</div>
@@ -201,22 +211,26 @@
                     <div class="metric-val" id="dash-prog" style="color:var(--success);">0%</div>
                 </div>
             </div>
-            <button class="btn-action" style="background:var(--border);" onclick="closeModals()">Chiudi</button>
         </div>
     </div>
 
     <div class="modal-overlay" id="modal-backup">
         <div class="modal-box">
-            <h3>🕒 Macchina del Tempo</h3>
-            <p style="font-size:12px; color:var(--text-muted); margin-bottom:15px;">Seleziona un backup per ripristinare la struttura a un giorno precedente.</p>
-            <div id="backup-list" style="display:flex; flex-direction:column; gap:10px; margin-bottom:20px;"></div>
-            <button class="btn-action" style="background:var(--border);" onclick="closeModals()">Chiudi</button>
+            <div class="modal-header">
+                <div class="modal-back-btn" onclick="closeModals()"><i class="fa-solid fa-arrow-left"></i></div>
+                <div class="modal-title">🕒 Macchina del Tempo</div>
+            </div>
+            <p style="font-size:12px; color:var(--text-muted); margin-bottom:15px;">Seleziona un backup per ripristinare la struttura a un giorno precedente in caso di errore.</p>
+            <div id="backup-list" style="display:flex; flex-direction:column; gap:10px;"></div>
         </div>
     </div>
 
     <div class="modal-overlay" id="modal-item">
         <div class="modal-box">
-            <h3 style="margin-bottom:20px;">Scheda Prodotto</h3>
+            <div class="modal-header">
+                <div class="modal-back-btn" onclick="closeModals()"><i class="fa-solid fa-arrow-left"></i></div>
+                <div class="modal-title" id="modal-item-title">Scheda Prodotto</div>
+            </div>
             <div class="input-group"><label>Nome Prodotto *</label><input type="text" id="input-item-name"></div>
             <div style="display:flex; gap:10px;">
                 <div class="input-group" style="flex:1;"><label>Fornitore</label><input type="text" id="input-item-supplier" placeholder="es. Macellaio"></div>
@@ -230,19 +244,22 @@
                 <div class="input-group" style="flex:1;"><label>Unità Misura</label><input type="text" id="input-item-line" placeholder="es. Kg"></div>
                 <div class="input-group" style="flex:1;"><label>Scadenza HACCP</label><input type="date" id="input-item-expiry"></div>
             </div>
-            <div class="input-group"><label>Info / Ricetta</label><input type="text" id="input-item-info"></div>
-            <div style="display:flex; gap:10px; margin-top:20px;">
-                <button class="btn-action" style="background:var(--border);" onclick="closeModals()">Annulla</button>
+            <div class="input-group" style="margin-bottom:0;"><label>Info / Ricetta / Grammature</label><input type="text" id="input-item-info"></div>
+            <div style="margin-top:20px;">
                 <button class="btn-action" style="background:var(--accent); color:var(--primary);" onclick="saveItem()">Salva Prodotto</button>
             </div>
         </div>
     </div>
 
-    <div class="modal-overlay" id="modal-sede"><div class="modal-box"><h3>Sede</h3><div class="input-group"><label>Nome</label><input type="text" id="input-sede-name"></div><button class="btn-action" style="background:var(--accent);" onclick="saveSede()">Salva</button></div></div>
-    <div class="modal-overlay" id="modal-folder"><div class="modal-box"><h3>Giorno / Turno</h3><div class="input-group"><label>Nome</label><input type="text" id="input-folder-name"></div><button class="btn-action" style="background:var(--accent);" onclick="saveFolder()">Salva</button></div></div>
-    <div class="modal-overlay" id="modal-section"><div class="modal-box"><h3>Frigorifero</h3><div class="input-group"><label>Nome</label><input type="text" id="input-section-name"></div><div class="input-group"><label>Colore</label><select id="input-section-color"><option value="#0f172a">Grigio</option><option value="#0984e3">Blu</option><option value="#d63031">Rosso</option><option value="#00b894">Verde</option></select></div><button class="btn-action" style="background:var(--accent);" onclick="saveSection()">Salva</button></div></div>
-    <div class="modal-overlay" id="modal-category-manager"><div class="modal-box"><h3>Categorie</h3><div id="category-list-editor" style="margin-bottom:20px;"></div><div class="input-group"><label>Nuova</label><input type="text" id="new-cat-name"></div><div id="color-palette" style="display:flex; gap:10px; margin-bottom:15px;"></div><select id="new-cat-type" class="input-group"><option value="standard">Standard</option><option value="magazzino">Magazzino</option></select><button class="btn-action" onclick="addCategory()">Aggiungi</button></div></div>
-    <div class="modal-overlay" id="modal-report"><div class="modal-box" style="max-width:650px;"><h3>Ordini e Report</h3><div id="report-preview" style="background:var(--bg); padding:15px; border-radius:12px; margin-bottom:20px; max-height:350px; overflow-y:auto; white-space:pre-wrap; font-family:monospace; font-size:12px; border:1px solid var(--border);"></div><div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;"><button class="btn-action" style="background:#25D366; color:white;" onclick="copyReportText()">Copia WhatsApp</button><button class="btn-action" style="background:var(--primary); color:white;" onclick="downloadReportExcel()">Esporta CSV</button></div></div></div>
+    <div class="modal-overlay" id="modal-sede"><div class="modal-box"><div class="modal-header"><div class="modal-back-btn" onclick="closeModals()"><i class="fa-solid fa-arrow-left"></i></div><div class="modal-title">Gestione Sede</div></div><div class="input-group"><label>Nome Sede</label><input type="text" id="input-sede-name"></div><button class="btn-action" style="background:var(--accent); color:var(--primary);" onclick="saveSede()">Salva</button></div></div>
+    
+    <div class="modal-overlay" id="modal-folder"><div class="modal-box"><div class="modal-header"><div class="modal-back-btn" onclick="closeModals()"><i class="fa-solid fa-arrow-left"></i></div><div class="modal-title">Gestione Turno</div></div><div class="input-group"><label>Nome Turno / Giorno</label><input type="text" id="input-folder-name"></div><button class="btn-action" style="background:var(--accent); color:var(--primary);" onclick="saveFolder()">Salva</button></div></div>
+    
+    <div class="modal-overlay" id="modal-section"><div class="modal-box"><div class="modal-header"><div class="modal-back-btn" onclick="closeModals()"><i class="fa-solid fa-arrow-left"></i></div><div class="modal-title">Gestione Frigorifero</div></div><div class="input-group"><label>Nome</label><input type="text" id="input-section-name"></div><div class="input-group"><label>Colore</label><select id="input-section-color"><option value="#0f172a">Grigio</option><option value="#0984e3">Blu</option><option value="#d63031">Rosso</option><option value="#00b894">Verde</option></select></div><button class="btn-action" style="background:var(--accent); color:var(--primary);" onclick="saveSection()">Salva</button></div></div>
+    
+    <div class="modal-overlay" id="modal-category-manager"><div class="modal-box"><div class="modal-header"><div class="modal-back-btn" onclick="closeModals()"><i class="fa-solid fa-arrow-left"></i></div><div class="modal-title">Categorie e Filtri</div></div><div id="category-list-editor" style="margin-bottom:20px;"></div><div class="input-group"><label>Nuova Categoria</label><input type="text" id="new-cat-name"></div><div id="color-palette" style="display:flex; gap:10px; margin-bottom:15px; flex-wrap:wrap;"></div><div class="input-group"><label>Comportamento</label><select id="new-cat-type"><option value="standard">Standard (Spunta Verde)</option><option value="magazzino">Magazzino (Contatore +/-)</option></select></div><button class="btn-action" style="background:var(--success); color:white;" onclick="addCategory()">Aggiungi Categoria</button></div></div>
+    
+    <div class="modal-overlay" id="modal-report"><div class="modal-box" style="max-width:650px;"><div class="modal-header"><div class="modal-back-btn" onclick="closeModals()"><i class="fa-solid fa-arrow-left"></i></div><div class="modal-title">Ordini e Reportistica</div></div><div id="report-preview" style="background:var(--bg); padding:15px; border-radius:12px; margin-bottom:20px; max-height:350px; overflow-y:auto; white-space:pre-wrap; font-family:monospace; font-size:13px; border:1px solid var(--border);"></div><div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;"><button class="btn-action" style="background:#25D366; color:white;" onclick="copyReportText()"><i class="fa-brands fa-whatsapp"></i> Invia Ordini</button><button class="btn-action" style="background:var(--primary); color:white;" onclick="downloadReportExcel()"><i class="fa-solid fa-file-excel"></i> Esporta CSV</button></div></div></div>
     <script>
         const CLOUD_KEY = "$2a$10$cANUKKt8gusYBU0s1g35UeBKFJM21uWzSe/ugzWuHGeZhj6C7KEui";
         const PALETTE = ["#0f172a", "#0984e3", "#00b894", "#d63031", "#e67e22", "#8e44ad", "#fd79a8", "#00ced1"];
@@ -255,6 +272,39 @@
 
         function sanitize(str) { return (str || "").toString().replace(/[<>"]/g, "'").trim(); }
         function generateId() { return Math.random().toString(36).substr(2, 9); }
+
+        // --- GESTIONE FINESTRE E HISTORY API (FIX UX TASTO INDIETRO E SCROLL) ---
+        function showModal(modalId) {
+            document.getElementById(modalId).style.display = 'flex';
+            document.body.classList.add('modal-open'); // Blocca lo scorrimento di fondo
+            history.pushState({ modal: modalId }, null, window.location.href); // Inganna il browser
+        }
+
+        function closeModals(eventOrGoBack) {
+            let goBack = typeof eventOrGoBack === 'boolean' ? eventOrGoBack : true;
+            let wasOpen = false;
+            
+            document.querySelectorAll('.modal-overlay').forEach(m => {
+                if(m.style.display === 'flex') {
+                    wasOpen = true;
+                    m.style.display = 'none';
+                }
+            });
+            
+            document.body.classList.remove('modal-open'); // Sblocca lo scorrimento di fondo
+            
+            // Se abbiamo chiuso con il bottone UI (e non col tasto fisico), torniamo indietro nella history
+            if (wasOpen && goBack) {
+                history.back();
+            }
+        }
+
+        // Ascolta il tasto fisico "Indietro" del telefono o lo swipe
+        window.addEventListener('popstate', function (event) {
+            // Se preme indietro, chiudiamo le modali dicendo alla funzione di NON fare un ulteriore history.back()
+            closeModals(false); 
+        });
+
 
         // --- AVVIO E CLOUD ---
         const urlParams = new URLSearchParams(window.location.search);
@@ -307,14 +357,14 @@
                 const key = localStorage.key(i);
                 if (key && key.startsWith('cucina_bkp_')) {
                     found = true;
-                    list.innerHTML += `<div style="display:flex; justify-content:space-between; align-items:center; background:var(--bg); border:1px solid var(--border); padding:10px; border-radius:8px;">
+                    list.innerHTML += `<div style="display:flex; justify-content:space-between; align-items:center; background:var(--bg); border:1px solid var(--border); padding:10px; border-radius:8px; margin-bottom: 5px;">
                         <span><i class="fa-solid fa-hard-drive"></i> Backup del ${key.split('_')[2]}</span>
                         <button class="btn-action" style="width:auto; padding:8px 15px; background:var(--warning); color:black;" onclick="restoreBackup('${key}')">Ripristina</button>
                     </div>`;
                 }
             }
             if(!found) list.innerHTML = '<p style="font-size:12px;">Nessun backup disponibile.</p>';
-            document.getElementById('modal-backup').style.display='flex';
+            showModal('modal-backup');
             if(window.innerWidth <= 768) document.getElementById('sidebar').classList.remove('open');
         }
 
@@ -329,7 +379,7 @@
             if (editMode) { toggleEditMode(false); return; }
             const savedPin = localStorage.getItem('cucina_v8_pin');
             if (!savedPin) { if(confirm("Nessun PIN impostato. Vuoi usare '0000'?")) { localStorage.setItem('cucina_v8_pin', '0000'); toggleEditMode(true); } } 
-            else { document.getElementById('input-pin').value = ''; document.getElementById('modal-pin').style.display = 'flex'; setTimeout(()=>document.getElementById('input-pin').focus(), 100); }
+            else { document.getElementById('input-pin').value = ''; showModal('modal-pin'); setTimeout(()=>document.getElementById('input-pin').focus(), 100); }
         }
         function verifyPin() {
             if (document.getElementById('input-pin').value === localStorage.getItem('cucina_v8_pin')) { closeModals(); toggleEditMode(true); } 
@@ -378,7 +428,7 @@
             document.getElementById('dash-val').innerText = "€ " + totVal.toFixed(2);
             document.getElementById('dash-exp').innerText = expCount;
             document.getElementById('dash-prog').innerText = totPrep > 0 ? Math.round((donePrep/totPrep)*100) + "%" : "100%";
-            document.getElementById('modal-dashboard').style.display='flex';
+            showModal('modal-dashboard');
             if(window.innerWidth <= 768) document.getElementById('sidebar').classList.remove('open');
         }
 
@@ -515,22 +565,20 @@
             }
         }
 
-        // --- GESTIONE FINESTRE E SALVATAGGI STRUTTURA ---
-        function closeModals() { document.querySelectorAll('.modal-overlay').forEach(m => m.style.display='none'); }
-        
-        function openSedeModal(id=null) { currentEdit={action:id?'edit':'new', id:id}; document.getElementById('input-sede-name').value = id ? appStructure.sedi[id].name : ''; document.getElementById('modal-sede').style.display='flex'; }
+        // --- APERTURA E SALVATAGGIO MODALI ---
+        function openSedeModal(id=null) { currentEdit={action:id?'edit':'new', id:id}; document.getElementById('input-sede-name').value = id ? appStructure.sedi[id].name : ''; showModal('modal-sede'); }
         function saveSede() { const n = sanitize(document.getElementById('input-sede-name').value); if(!n) return; if(currentEdit.action==='new'){ const id='sede_'+generateId(); appStructure.sedi[id] = {id, name:n, folders:{}}; activeSede=id; } else { appStructure.sedi[currentEdit.id].name=n; } saveStructure(); closeModals(); renderApp(); }
         function deleteSede(id) { if(confirm("Eliminare Sede?")) { delete appStructure.sedi[id]; activeSede = Object.keys(appStructure.sedi)[0]||null; saveStructure(); renderApp(); } }
 
-        function openFolderModal(id=null) { currentEdit={action:id?'edit':'new', id:id}; document.getElementById('input-folder-name').value = id ? appStructure.sedi[activeSede].folders[id].name : ''; document.getElementById('modal-folder').style.display='flex'; }
+        function openFolderModal(id=null) { currentEdit={action:id?'edit':'new', id:id}; document.getElementById('input-folder-name').value = id ? appStructure.sedi[activeSede].folders[id].name : ''; showModal('modal-folder'); }
         function saveFolder() { const n = sanitize(document.getElementById('input-folder-name').value); if(!n) return; if(currentEdit.action==='new'){ const id='f_'+generateId(); appStructure.sedi[activeSede].folders[id] = {id, name:n, sections:[]}; activeFolder=id; } else { appStructure.sedi[activeSede].folders[currentEdit.id].name=n; } saveStructure(); closeModals(); renderFolders(); renderContent(); }
         function deleteFolder(id) { if(confirm("Eliminare Turno?")) { delete appStructure.sedi[activeSede].folders[id]; activeFolder = Object.keys(appStructure.sedi[activeSede].folders)[0]||null; saveStructure(); renderFolders(); renderContent(); } }
 
-        function openSectionModal(id=null) { currentEdit={action:id?'edit':'new', id:id}; if(id){ const s = appStructure.sedi[activeSede].folders[activeFolder].sections.find(x=>x.id===id); document.getElementById('input-section-name').value=s.name; document.getElementById('input-section-color').value=s.color; } else { document.getElementById('input-section-name').value=''; document.getElementById('input-section-color').value='#0f172a'; } document.getElementById('modal-section').style.display='flex'; }
+        function openSectionModal(id=null) { currentEdit={action:id?'edit':'new', id:id}; if(id){ const s = appStructure.sedi[activeSede].folders[activeFolder].sections.find(x=>x.id===id); document.getElementById('input-section-name').value=s.name; document.getElementById('input-section-color').value=s.color; } else { document.getElementById('input-section-name').value=''; document.getElementById('input-section-color').value='#0f172a'; } showModal('modal-section'); }
         function saveSection() { const n = sanitize(document.getElementById('input-section-name').value), c = document.getElementById('input-section-color').value; if(!n) return; let arr = appStructure.sedi[activeSede].folders[activeFolder].sections; if(currentEdit.action==='new') arr.push({id:'s_'+generateId(), name:n, color:c, items:[]}); else { let s = arr.find(x=>x.id===currentEdit.id); s.name=n; s.color=c; } saveStructure(); closeModals(); renderContent(); }
         function deleteSection(id) { if(confirm("Eliminare Frigo?")) { appStructure.sedi[activeSede].folders[activeFolder].sections = appStructure.sedi[activeSede].folders[activeFolder].sections.filter(x=>x.id!==id); saveStructure(); renderContent(); } }
 
-        // IL FIX DEL SALVATAGGIO PRODOTTI
+        // GESTIONE PRODOTTI
         function openItemModal(secId, itemId=null) {
             currentEdit = { action: itemId ? 'edit' : 'new', secId: secId, itemId: itemId };
             const sel = document.getElementById('input-item-cat'); sel.innerHTML = '';
@@ -549,7 +597,7 @@
             } else {
                 ['name','supplier','ideal','cost','line','expiry','info'].forEach(id => document.getElementById('input-item-'+id).value = '');
             }
-            document.getElementById('modal-item').style.display='flex';
+            showModal('modal-item');
         }
 
         function saveItem() {
@@ -572,7 +620,7 @@
 
             if(currentEdit.action === 'edit') {
                 let item = sec.items.find(x=>x.id === currentEdit.itemId);
-                Object.keys(data).forEach(k => item[k] = data[k]); // Assegnazione diretta e sicura
+                Object.keys(data).forEach(k => item[k] = data[k]);
             } else {
                 data.id = 'i_'+generateId();
                 sec.items.push(data);
@@ -586,7 +634,7 @@
         function moveItem(secId, itemId, dir) { let arr = appStructure.sedi[activeSede].folders[activeFolder].sections.find(s=>s.id===secId).items; let idx = arr.findIndex(i=>i.id===itemId); if(idx<0 || (dir===-1 && idx===0) || (dir===1 && idx===arr.length-1)) return; let temp = arr[idx]; arr[idx] = arr[idx+dir]; arr[idx+dir] = temp; saveStructure(); renderContent(); }
 
         // --- GESTIONE CATEGORIE ---
-        function openCategoryManager() { const list = document.getElementById('category-list-editor'); list.innerHTML = ''; appStructure.categories.forEach(cat => { list.innerHTML += `<div style="display:flex; justify-content:space-between; align-items:center; padding:10px; background:var(--bg); border-radius:8px; margin-bottom:5px;"><span style="font-weight:800;"><i class="fa-solid fa-circle" style="color:${cat.color}"></i> ${cat.name}</span><i class="fa-solid fa-trash" style="color:var(--danger); cursor:pointer;" onclick="deleteCategory('${cat.id}')"></i></div>`; }); const pal = document.getElementById('color-palette'); pal.innerHTML = ''; PALETTE.forEach(c => { pal.innerHTML += `<div class="color-dot ${selectedColor===c?'selected':''}" style="background:${c}" onclick="selectColor('${c}', this)"></div>`; }); document.getElementById('modal-category-manager').style.display='flex'; }
+        function openCategoryManager() { const list = document.getElementById('category-list-editor'); list.innerHTML = ''; appStructure.categories.forEach(cat => { list.innerHTML += `<div style="display:flex; justify-content:space-between; align-items:center; padding:10px; background:var(--bg); border-radius:8px; margin-bottom:5px;"><span style="font-weight:800;"><i class="fa-solid fa-circle" style="color:${cat.color}"></i> ${cat.name}</span><i class="fa-solid fa-trash" style="color:var(--danger); cursor:pointer;" onclick="deleteCategory('${cat.id}')"></i></div>`; }); const pal = document.getElementById('color-palette'); pal.innerHTML = ''; PALETTE.forEach(c => { pal.innerHTML += `<div class="color-dot ${selectedColor===c?'selected':''}" style="background:${c}" onclick="selectColor('${c}', this)"></div>`; }); showModal('modal-category-manager'); }
         function selectColor(c, el) { selectedColor = c; document.querySelectorAll('.color-dot').forEach(d => d.classList.remove('selected')); el.classList.add('selected'); }
         function addCategory() { const name = sanitize(document.getElementById('new-cat-name').value), type = document.getElementById('new-cat-type').value; if(!name) return; appStructure.categories.push({ id: 'cat_'+generateId(), name, color: selectedColor, type }); document.getElementById('new-cat-name').value = ''; saveStructure(); openCategoryManager(); renderCategories(); }
         function deleteCategory(id) { if(appStructure.categories.length > 1 && confirm("Eliminare categoria?")) { appStructure.categories = appStructure.categories.filter(c => c.id !== id); saveStructure(); openCategoryManager(); renderCategories(); } }
@@ -623,7 +671,7 @@
             if(prepList.length === 0 && Object.keys(orders).length === 0) txt += "✅ Linea completata, magazzino a livello.";
 
             reportTextToCopy = txt; document.getElementById('report-preview').innerText = txt;
-            document.getElementById('modal-report').style.display='flex'; if(window.innerWidth <= 768) document.getElementById('sidebar').classList.remove('open');
+            showModal('modal-report'); if(window.innerWidth <= 768) document.getElementById('sidebar').classList.remove('open');
         }
 
         function copyReportText() { if(!reportTextToCopy) return; window.open("https://wa.me/?text=" + encodeURIComponent(reportTextToCopy), '_blank'); }
@@ -634,9 +682,9 @@
             if(!confirm("Salvare su Cloud per i colleghi?")) return;
             document.getElementById('sync-indicator').style.display='block'; document.getElementById('sync-indicator').innerText="⏳ UP...";
             try {
-                const res = await fetch('https://api.jsonbin.io/v3/b', { method:'POST', headers:{'Content-Type':'application/json','X-Master-Key':CLOUD_KEY,'X-Bin-Name':'App_V8_ERP'}, body:JSON.stringify(appStructure) });
+                const res = await fetch('https://api.jsonbin.io/v3/b', { method:'POST', headers:{'Content-Type':'application/json','X-Master-Key':CLOUD_KEY,'X-Bin-Name':'App_V8.1_ERP'}, body:JSON.stringify(appStructure) });
                 const magicLink = window.location.href.split('?')[0] + '?bin=' + (await res.json()).metadata.id;
-                window.open("https://wa.me/?text=" + encodeURIComponent("👨‍🍳 *AGGIORNAMENTO CUCINA ERP V8*\n\nStruttura aggiornata. Clicca per sincronizzare:\n\n" + magicLink), '_blank');
+                window.open("https://wa.me/?text=" + encodeURIComponent("👨‍🍳 *AGGIORNAMENTO CUCINA ERP V8.1*\n\nStruttura aggiornata. Clicca per sincronizzare:\n\n" + magicLink), '_blank');
                 document.getElementById('sync-indicator').innerText='☁️ CLOUD OK'; document.getElementById('sync-indicator').style.color='var(--success)';
             } catch(e) { alert("⚠️ Errore Cloud."); document.getElementById('sync-indicator').innerText='❌ OFFLINE'; document.getElementById('sync-indicator').style.color='var(--danger)'; }
         }
