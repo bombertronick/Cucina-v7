@@ -482,16 +482,99 @@
         function deleteCategory(id) { if(appStructure.categories.length > 1 && confirm("Elimina categoria?")) { appStructure.categories = appStructure.categories.filter(c => c.id !== id); saveStructure(); openCategoryManager(); renderCategories(); } }
 
         let reportTextToCopy = "", csvData = [];
-        function generateReport() {
-            if(!activeSede || !activeFolder) return; const fol = appStructure.sedi[activeSede].folders[activeFolder]; let pL = [], ord = {}, tV = 0; csvData = [];
+                function generateReport() {
+            if(!activeSede || !activeFolder) return; 
+            const fol = appStructure.sedi[activeSede].folders[activeFolder]; 
+            let pL = [], ord = {}, tV = 0; csvData = [];
+            
             fol.sections.forEach(sec => {
                 sec.items.forEach(i => {
                     const k = `${activeSede}_${activeFolder}_${sec.id}_${i.id}`; const st = appState[k]; const cat = appStructure.categories.find(c => c.id === i.catId) || {type: 'standard'};
-                    if(st && st.n && st.n.trim() !== "") { pL.push(`[${sec.name}] ${i.n} -> NOTA: ${st.n}`); csvData.push({ type: "PREP", sec: sec.name, prod: i.n, val: st.n }); }
+                    if(st && st.n && st.n.trim() !== "") { 
+                        pL.push({sec: sec.name, prod: i.n, nota: st.n}); 
+                        csvData.push({ type: "PREP", sec: sec.name, prod: i.n, val: st.n }); 
+                    }
                     if(cat.type === 'magazzino' && st && st.q !== undefined) {
                         let q = st.q || 0; if(i.cost) tV += (q * i.cost);
-                        if(i.idealQty && q < i.idealQty) { let toO = i.idealQty - q, sup = i.supplier ? i.supplier.toUpperCase() : 'GENERAL'; if(!ord[sup]) ord[sup] = []; ord[sup].push(`${i.n}: Ordina ${toO}`); csvData.push({ type: "ORDINE - " + sup, sec: sec.name, prod: i.n, val: `Ordina ${toO}` }); }
+                        if(i.idealQty && q < i.idealQty) { 
+                            let toO = i.idealQty - q, sup = i.supplier ? i.supplier.toUpperCase() : 'GENERALE'; 
+                            if(!ord[sup]) ord[sup] = []; 
+                            ord[sup].push({prod: i.n, qty: toO}); 
+                            csvData.push({ type: "ORDINE - " + sup, sec: sec.name, prod: i.n, val: `Ordina ${toO}` }); 
+                        }
                     }
+                });
+            });
+
+            // 1. TESTO WHATSAPP (ULTRA-SNELLO)
+            let txt = ``; 
+            if(Object.keys(ord).length > 0) { 
+                txt += `🛒 ORDINI:\n`; 
+                for(let s in ord) { 
+                    txt += `\n[${s}]\n`; 
+                    ord[s].forEach(o => txt += `• ${o.prod}: ${o.qty}\n`); 
+                } 
+                txt += `\n`; 
+            } 
+            if(pL.length > 0) { 
+                txt += `🔪 NOTE PREPARAZIONE:\n`; 
+                pL.forEach(p => txt += `• ${p.prod} (${p.sec}): ${p.nota}\n`); 
+                txt += `\n`; 
+            } 
+            if(tV > 0) txt += `💶 MAGAZZINO: € ${tV.toFixed(2)}\n`;
+            if(pL.length === 0 && Object.keys(ord).length === 0) txt += "✅ Nessun ordine. Tutto a livello.";
+            
+            // Rimuove spazi vuoti inutili all'inizio e alla fine
+            reportTextToCopy = txt.trim();
+
+            // 2. GRAFICA APP (PROFESSIONALE)
+            let html = `<div style="font-family:'Urbanist', sans-serif;">`;
+            if(pL.length === 0 && Object.keys(ord).length === 0) {
+                html += `<div style="text-align:center; padding:30px 20px; color:var(--success); background:var(--bg); border-radius:16px;"><i class="fa-solid fa-circle-check" style="font-size:40px; margin-bottom:15px;"></i><br><b style="font-size:18px;">Tutto in regola!</b><br><span style="font-size:13px; color:var(--text-muted);">Linea pronta e magazzino a livello.</span></div>`;
+            } else {
+                if(pL.length > 0) {
+                    html += `<div style="margin-bottom:25px;"><div style="font-size:11px; font-weight:800; color:var(--warning); margin-bottom:10px; letter-spacing:1px;"><i class="fa-solid fa-bell"></i> DA PREPARARE / NOTE</div>`;
+                    pL.forEach(p => { 
+                        html += `<div style="background:rgba(245, 158, 11, 0.05); border-left:4px solid var(--warning); padding:10px 15px; margin-bottom:8px; border-radius:0 8px 8px 0;">
+                            <div style="font-weight:800; font-size:14px; color:var(--text);">${p.prod} <span style="font-size:11px; font-weight:600; color:var(--text-muted);">(${p.sec})</span></div>
+                            <div style="color:#b45309; font-size:13px; margin-top:4px; font-weight:600;">${p.nota}</div>
+                        </div>`; 
+                    });
+                    html += `</div>`;
+                }
+                if(Object.keys(ord).length > 0) {
+                    html += `<div style="margin-bottom:20px;"><div style="font-size:11px; font-weight:800; color:var(--accent); margin-bottom:10px; letter-spacing:1px;"><i class="fa-solid fa-cart-shopping"></i> LISTA DELLA SPESA</div>`;
+                    for(let s in ord) {
+                        html += `<div style="background:var(--bg); padding:15px; border-radius:12px; margin-bottom:12px; border:1px solid var(--border);">
+                            <div style="font-size:11px; font-weight:800; color:var(--text-muted); margin-bottom:12px; display:flex; align-items:center; gap:6px; border-bottom:1px solid var(--border); padding-bottom:8px;"><i class="fa-solid fa-truck"></i> FORNITORE: ${s}</div>`;
+                        ord[s].forEach(o => { 
+                            html += `<div style="display:flex; justify-content:space-between; align-items:center; padding:6px 0;">
+                                <span style="font-size:14px; font-weight:600;">${o.prod}</span>
+                                <span style="background:var(--accent); color:var(--primary); padding:4px 10px; border-radius:20px; font-weight:800; font-size:12px;">+ ${o.qty}</span>
+                            </div>`; 
+                        });
+                        html += `</div>`;
+                    }
+                    html += `</div>`;
+                }
+            }
+            if(tV > 0) { 
+                html += `<div style="margin-top:20px; padding:15px; background:rgba(16, 185, 129, 0.1); border-radius:12px; text-align:center; color:var(--success); border:1px dashed var(--success);">
+                    <span style="font-size:11px; font-weight:800; display:block; margin-bottom:5px;">VALORE MAGAZZINO STIMATO</span>
+                    <span style="font-size:22px; font-weight:800;">€ ${tV.toFixed(2)}</span>
+                </div>`; 
+            }
+            html += `</div>`;
+
+            // Mostra a schermo la UI e prepara l'invisibile per WA
+            const preview = document.getElementById('report-preview');
+            preview.style = "max-height: 50vh; overflow-y: auto; margin-bottom: 20px;";
+            preview.innerHTML = html;
+            
+            showModal('modal-report'); 
+            if(window.innerWidth <= 768) document.getElementById('sidebar').classList.remove('open');
+        }
+
                 });
             });
             let txt = `📋 REPORT CUCINA\nData: ${new Date().toLocaleDateString()}\n\n`; if(pL.length > 0) { txt += `🔪 PREPARAZIONI:\n`; pL.forEach(p => txt += `- ${p}\n`); txt += `\n`; } if(Object.keys(ord).length > 0) { txt += `🛒 SPESA:\n`; for(let s in ord) { txt += `\n🚚 ${s}:\n`; ord[s].forEach(o => txt += `- ${o}\n`); } txt += `\n`; } if(tV > 0) txt += `💶 VALORE MAGAZZINO: € ${tV.toFixed(2)}\n`;
