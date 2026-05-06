@@ -500,10 +500,37 @@
         function copyReportText() { if(!reportTextToCopy) return; window.open("https://wa.me/?text=" + encodeURIComponent(reportTextToCopy), '_blank'); }
         function downloadReportExcel() { if(csvData.length===0) return alert("Vuoto."); let csv = "data:text/csv;charset=utf-8,\uFEFFTIPO;SETTORE;PRODOTTO;DETTAGLIO\n"; csvData.forEach(r => { csv += `"${r.type}";"${r.sec}";"${r.prod}";"${r.val}"\n`; }); const l = document.createElement("a"); l.setAttribute("href", encodeURI(csv)); l.setAttribute("download", `Report.csv`); document.body.appendChild(l); l.click(); document.body.removeChild(l); }
 
-        async function openSyncModal() {
-            if(!confirm("Salva su Cloud?")) return; document.getElementById('sync-indicator').style.display='block'; document.getElementById('sync-indicator').innerText="⏳ UP...";
-            try { const res = await fetch('https://api.jsonbin.io/v3/b', { method:'POST', headers:{'Content-Type':'application/json','X-Master-Key':CLOUD_KEY,'X-Bin-Name':'App_V8.5_ERP'}, body:JSON.stringify(appStructure) }); const m = window.location.href.split('?')[0] + '?bin=' + (await res.json()).metadata.id; window.open("https://wa.me/?text=" + encodeURIComponent("👨‍🍳 AGGIORNAMENTO CUCINA:\n\n" + m), '_blank'); document.getElementById('sync-indicator').innerText='☁️ OK'; } catch(e) { alert("⚠️ Errore."); }
+                async function openSyncModal() {
+            if(!confirm("Salvare le modifiche sul Cloud?")) return; 
+            document.getElementById('sync-indicator').style.display='block'; 
+            document.getElementById('sync-indicator').innerText="⏳ UP...";
+            
+            try { 
+                const res = await fetch('https://api.jsonbin.io/v3/b', { 
+                    method:'POST', 
+                    headers:{'Content-Type':'application/json','X-Master-Key':CLOUD_KEY,'X-Bin-Name':'App_V8.5_ERP'}, 
+                    body:JSON.stringify(appStructure) 
+                }); 
+                
+                const data = await res.json();
+                const magicLink = window.location.href.split('?')[0] + '?bin=' + data.metadata.id; 
+                
+                // Tenta di copiare il link in automatico nella memoria del PC/Telefono
+                try {
+                    await navigator.clipboard.writeText(magicLink);
+                    alert("✅ Salvataggio riuscito!\n\nIl link è stato COPIATO in automatico.\nOra fai 'Incolla' su WhatsApp o via Email per inviarlo.");
+                } catch(err) {
+                    // Piano B: Se il browser blocca la copia automatica, lo mostra in una casella di testo
+                    prompt("✅ Salvataggio riuscito!\nCopia manualmente questo link e invialo:", magicLink);
+                }
+
+                document.getElementById('sync-indicator').innerText='☁️ CLOUD OK'; 
+            } catch(e) { 
+                alert("⚠️ Errore di connessione."); 
+                document.getElementById('sync-indicator').innerText='❌ OFFLINE';
+            }
         }
+
         function toggleTheme() { const t = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark'; document.documentElement.setAttribute('data-theme', t); localStorage.setItem('cucina_v8_theme', t); }
     </script>
 </body>
