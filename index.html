@@ -10,9 +10,9 @@
     
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    
+   
     <style>
-        /* ==========================================================================
+           /* ==========================================================================
            1. CORE VARIABLES & THEME ENGINE
            ========================================================================== */
         :root {
@@ -85,7 +85,7 @@
         ::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
 
         /* ==========================================================================
-           3. LAYOUT: SIDEBAR & MAIN
+           3. LAYOUT: SIDEBAR & MAIN (AGGIORNATO CON BOTTONE CHIUSURA)
            ========================================================================== */
         .sidebar { 
             width: var(--sidebar-w); 
@@ -104,6 +104,9 @@
         .sidebar-header { 
             padding: calc(24px + var(--safe-top)) 24px 24px; 
             border-bottom: 1px solid rgba(255,255,255,0.05); 
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
         
         .sidebar-header h1 { 
@@ -113,8 +116,24 @@
             display: flex;
             align-items: center;
             gap: 10px;
+            margin: 0;
         }
         .sidebar-header h1 span { color: var(--accent); font-size: 0.8rem; background: rgba(14, 165, 233, 0.1); padding: 4px 8px; border-radius: 6px; }
+
+        /* Il nuovo pulsante di chiusura intelligente */
+        .sidebar-close-btn { 
+            display: none; /* Nascosto su PC */
+            background: rgba(255,255,255,0.05); 
+            border: 1px solid rgba(255,255,255,0.1); 
+            color: rgba(255,255,255,0.7); 
+            width: 36px; height: 36px; 
+            border-radius: var(--radius-md); 
+            cursor: pointer; 
+            transition: all 0.2s ease; 
+            justify-content: center; align-items: center; 
+        }
+        .sidebar-close-btn:hover { background: rgba(255,255,255,0.1); color: #fff; }
+        .sidebar-close-btn:active { transform: scale(0.95); }
 
         .nav-group { padding: 20px 0; flex-grow: 1; overflow-y: auto; }
         .nav-label { padding: 0 24px 8px; font-size: 0.65rem; font-weight: 800; color: rgba(255,255,255,0.4); text-transform: uppercase; letter-spacing: 1.5px; }
@@ -229,7 +248,6 @@
         table { width: 100%; border-collapse: collapse; }
         td { padding: 14px 20px; border-bottom: 1px solid var(--border); vertical-align: middle; font-size: 0.95rem; }
         
-        /* Sistema Incolonnamento Mobile Ottimizzato */
         @media (max-width: 768px) {
             tr { display: flex; flex-wrap: wrap; align-items: center; padding: 14px 0; border-bottom: 1px solid var(--border); }
             td { padding: 6px 20px; border-bottom: none !important; }
@@ -290,46 +308,35 @@
         .input-group input, .input-group select { width: 100%; padding: 14px; border: 2px solid var(--border); border-radius: var(--radius-md); font-size: 1rem; font-family: inherit; font-weight: 600; background: var(--bg); color: var(--text); transition: all 0.2s; }
         .input-group input:focus, .input-group select:focus { border-color: var(--accent); box-shadow: 0 0 0 4px var(--accent-glow); }
 
-        /* Cloud Hub Specifics */
-        .cloud-version-card {
-            background: var(--bg); border: 1px solid var(--border); padding: 16px; border-radius: var(--radius-md);
-            display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;
-            transition: all 0.2s;
-        }
+        .cloud-version-card { background: var(--bg); border: 1px solid var(--border); padding: 16px; border-radius: var(--radius-md); display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; transition: all 0.2s; }
         .cloud-version-card:hover { border-color: var(--accent); transform: translateY(-2px); box-shadow: var(--shadow-md); }
 
         /* ==========================================================================
            7. CUSTOM TOAST NOTIFICATIONS
            ========================================================================== */
-        #toast-container {
-            position: fixed; top: calc(20px + var(--safe-top)); left: 50%; transform: translateX(-50%);
-            z-index: 9999; display: flex; flex-direction: column; gap: 10px; pointer-events: none;
-        }
-        .custom-toast {
-            background: var(--card); border: 1px solid var(--border); color: var(--text);
-            padding: 14px 24px; border-radius: 100px; box-shadow: var(--shadow-lg);
-            font-weight: 700; font-size: 0.95rem; display: flex; align-items: center; gap: 12px;
-            animation: toastEnter 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards; pointer-events: auto;
-        }
+        #toast-container { position: fixed; top: calc(20px + var(--safe-top)); left: 50%; transform: translateX(-50%); z-index: 9999; display: flex; flex-direction: column; gap: 10px; pointer-events: none; }
+        .custom-toast { background: var(--card); border: 1px solid var(--border); color: var(--text); padding: 14px 24px; border-radius: 100px; box-shadow: var(--shadow-lg); font-weight: 700; font-size: 0.95rem; display: flex; align-items: center; gap: 12px; animation: toastEnter 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards; pointer-events: auto; }
         .toast-success { border-left: 4px solid var(--success); }
         .toast-error { border-left: 4px solid var(--danger); }
         .toast-info { border-left: 4px solid var(--accent); }
 
-        /* Animations */
-        @keyframes fadeIn { to { opacity: 1; } }
-        @keyframes slideUp { to { transform: translateY(0); } }
-        @keyframes toastEnter { from { opacity: 0; transform: translateY(-20px) scale(0.9); } to { opacity: 1; transform: translateY(0) scale(1); } }
-        @keyframes toastLeave { to { opacity: 0; transform: translateY(-20px) scale(0.9); } }
-
-        /* Mobile Sidebar */
+        /* Mobile specific media queries per tendina */
         @media (max-width: 768px) {
             .sidebar { position: absolute; left: -100%; box-shadow: none; }
             .sidebar.open { left: 0; box-shadow: 20px 0 50px rgba(0,0,0,0.5); }
             main { width: 100vw; }
             .mobile-overlay { position: fixed; inset: 0; background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(4px); z-index: 1000; display: none; opacity: 0; transition: opacity 0.3s; }
             .sidebar.open + .mobile-overlay { display: block; opacity: 1; }
+            .sidebar-close-btn { display: flex; } /* Mostra la freccia solo su mobile! */
         }
+
+        @keyframes fadeIn { to { opacity: 1; } }
+        @keyframes slideUp { to { transform: translateY(0); } }
+        @keyframes toastEnter { from { opacity: 0; transform: translateY(-20px) scale(0.9); } to { opacity: 1; transform: translateY(0) scale(1); } }
+        @keyframes toastLeave { to { opacity: 0; transform: translateY(-20px) scale(0.9); } }
     </style>
+ 
+
 </head>
 <body>
 
