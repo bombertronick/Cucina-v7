@@ -1,0 +1,1370 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Scutum ERP">
+    <meta name="application-name" content="Scutum ERP">
+    <meta name="theme-color" content="#0D0907">
+    
+    <title>Scutum ERP V15.4 Absolute</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    
+    <style>
+        /* ==========================================================================
+           0. KERNEL VISIVO: SCUTUM BRUTALISM V15.4
+           ========================================================================== */
+        :root {
+            /* TEMA SCURO ASSOLUTO (DEFAULT) */
+            --bg: #0D0907;                 /* Nero Vulcanico / Fondo Abissale */
+            --card: #201311;               /* Vinaccia / Cuoio Scuro */
+            --sidebar-bg: rgba(20, 10, 10, 0.98);
+            
+            --accent: #C9A464;              /* Oro Forgiato Scutum */
+            --accent-glow: rgba(201, 164, 100, 0.15);
+            
+            --text: #F2E8E4;                /* Perla / Bianco sporco */
+            --text-muted: #8A7270;          /* Cenere / Vinaccia sbiadito */
+            --border: #3D2624;              /* Bordo Scutum */
+            
+            --success: #356E3B;             /* Verde Militare */
+            --danger: #8C2222;              /* Rosso Sangue Spartano */
+            --warning: #C9A464;             /* Oro Segnale */
+            --input-bg: var(--bg);
+            
+            /* Geometria e Fisica */
+            --sidebar-w: 280px; 
+            --radius-main: 12px;            
+            --bezier: cubic-bezier(0.2, 0.8, 0.2, 1);
+            --safe-top: env(safe-area-inset-top, 0px); 
+            --safe-bottom: env(safe-area-inset-bottom, 0px);
+            
+            /* Motore Vettoriale: Meandro Greco (Chiave) per i bordi */
+            --meandro-bg: #C9A464;
+            --meandro-pattern: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="36" height="12" viewBox="0 0 36 12"><path d="M0,0h4v12H0zM4,4h4v4H4zM16,4h4v4h-4zM32,4h4v4h-4z" fill="rgba(201,164,100,0.15)"/></svg>');
+        }
+
+        /* FIX TEMA CHIARO: Calibrazione Pergamena e Inchiostro */
+        [data-theme="light"] {
+            --bg: #F9F6F0;                 /* Crema / Pergamena chiara */
+            --card: #FFFFFF;               /* Bianco puro per le schede */
+            --sidebar-bg: rgba(249, 246, 240, 0.98);
+            
+            --accent: #8C2222;              /* Rosso Scutum come accento primario */
+            --accent-glow: rgba(140, 34, 34, 0.1);
+            
+            --text: #201311;                /* Vinaccia scurissimo (Quasi nero) */
+            --text-muted: #7A625F;          /* Marrone tenue */
+            --border: #E5D5C5;              /* Bordo beige/crema */
+            
+            --success: #27632A;             
+            --danger: #B22222;              
+            --warning: #D2A850;             
+            --input-bg: #F0EAE1;            /* Sfondo input in tema chiaro */
+            
+            --meandro-bg: #8C2222;
+            --meandro-pattern: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="36" height="12" viewBox="0 0 36 12"><path d="M0,0h4v12H0zM4,4h4v4H4zM16,4h4v4h-4zM32,4h4v4h-4z" fill="rgba(140,34,34,0.1)"/></svg>');
+        }
+
+        /* ==========================================================================
+           1. NORMALIZZAZIONE HARDWARE E LAYER SPA
+           ========================================================================== */
+        * { 
+            box-sizing: border-box; 
+            -webkit-tap-highlight-color: transparent; 
+            margin: 0; 
+            padding: 0; 
+            outline: none; 
+        }
+        
+        body { 
+            font-family: 'Plus Jakarta Sans', sans-serif; 
+            background: var(--bg); 
+            color: var(--text); 
+            height: 100dvh; 
+            width: 100vw; 
+            overflow: hidden; 
+            display: flex; 
+            transition: background 0.4s var(--bezier), color 0.4s var(--bezier); 
+            -webkit-font-smoothing: antialiased;
+        }
+
+        ::-webkit-scrollbar { width: 4px; height: 4px; } 
+        ::-webkit-scrollbar-track { background: transparent; } 
+        ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 10px; }
+        
+        .spa-view { 
+            position: absolute; inset: 0; display: none; opacity: 0; 
+            pointer-events: none; z-index: 1; 
+            transition: opacity 0.3s var(--bezier), transform 0.3s var(--bezier); 
+            flex-direction: column; transform: scale(0.98);
+        }
+        
+        .spa-view.active { 
+            display: flex; opacity: 1; pointer-events: auto; z-index: 10; transform: scale(1);
+        }
+        
+        body.modal-open { pointer-events: none; }
+        /* ==========================================================================
+           2. COMPONENTI UI CORE E SIDEBAR
+           ========================================================================== */
+        .sidebar { 
+            width: var(--sidebar-w); height: 100%; 
+            background: var(--sidebar-bg); 
+            backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+            border-right: 2px solid var(--border); 
+            display: flex; flex-direction: column; padding: 24px; 
+            z-index: 1000; flex-shrink: 0; 
+            transition: transform 0.4s var(--bezier); position: relative;
+        }
+        
+        .sidebar::after {
+            content: ''; position: absolute; top: 0; right: 0; width: 6px; height: 100%;
+            background: var(--meandro-bg); background-image: var(--meandro-pattern); opacity: 0.8;
+        }
+        
+        .sidebar-logo { 
+            font-weight: 800; font-size: 1.5rem; display: flex; align-items: center; gap: 12px; 
+            color: var(--accent); letter-spacing: -0.5px; text-transform: uppercase;
+        }
+        
+        .nav-item { 
+            padding: 14px 18px; border-radius: var(--radius-main); display: flex; align-items: center; gap: 14px; 
+            cursor: pointer; color: var(--text-muted); font-weight: 700; font-size: 0.95rem; 
+            margin-bottom: 6px; transition: 0.2s; border: 1px solid transparent;
+        }
+        
+        .nav-item:hover { background: var(--accent-glow); color: var(--text); } 
+        .nav-item.active { background: var(--border); color: var(--accent); border-color: var(--accent-glow); }
+
+        /* ==========================================================================
+           3. VIEWPORT CENTRALE E MATRICE TABELLARE (IL FERRO)
+           ========================================================================== */
+        main { 
+            flex: 1; height: 100%; display: flex; flex-direction: column; overflow-y: auto; 
+            padding: 24px; padding-top: calc(24px + var(--safe-top)); padding-bottom: calc(120px + var(--safe-bottom)); 
+            scroll-behavior: smooth;
+        }
+        
+        .search-pill { width: 100%; max-width: 800px; margin: 0 auto 32px; position: relative; }
+        .search-pill input { 
+            width: 100%; padding: 18px 24px 18px 60px; border-radius: 100px; border: 2px solid var(--border); 
+            background: var(--card); color: var(--text); font-size: 1.05rem; font-weight: 700; 
+            transition: 0.3s var(--bezier); box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        }
+        .search-pill input:focus { border-color: var(--accent); background: var(--bg); box-shadow: 0 8px 30px var(--accent-glow); } 
+        .search-pill i { position: absolute; left: 26px; top: 50%; transform: translateY(-50%); color: var(--accent); font-size: 1.2rem; }
+        
+        .card { 
+            background: var(--card); border-radius: var(--radius-main); border: 1px solid var(--border); 
+            margin-bottom: 32px; overflow: hidden; box-shadow: 0 8px 24px rgba(0,0,0,0.2); 
+        }
+        
+        .card-header { 
+            font-weight: 800; font-size: 1.2rem; padding: 20px 24px; color: var(--accent); 
+            display: flex; justify-content: space-between; align-items: center; position: relative; 
+            background: var(--bg); border-bottom: 2px solid var(--border); text-transform: uppercase; letter-spacing: 1px;
+        }
+        
+        .card-header::after {
+            content: ''; position: absolute; bottom: -2px; left: 0; width: 100%; height: 2px;
+            background: var(--meandro-bg); background-image: var(--meandro-pattern);
+        }
+        
+        .card-progress-bg { position: absolute; top: 0; left: 0; width: 100%; height: 3px; background: var(--border); } 
+        .card-progress-fill { height: 100%; background: var(--success); width: 0%; transition: width 0.4s var(--bezier); }
+        
+        table { width: 100%; border-collapse: collapse; } 
+        td { padding: 18px 24px; border-bottom: 1px solid var(--border); vertical-align: middle; } 
+        tr:last-child td { border-bottom: none; }
+        
+        .prod-name { font-weight: 800; font-size: 1.15rem; display: block; margin-bottom: 6px; letter-spacing: -0.3px; } 
+        .prod-meta { font-size: 0.8rem; color: var(--text-muted); font-weight: 700; display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+        
+        .role-badge { padding: 4px 10px; border-radius: 6px; color: #fff; font-weight: 800; font-size: 0.7rem; text-transform: uppercase; border: 1px solid rgba(255,255,255,0.1); } 
+        .uom-badge { padding: 4px 8px; border-radius: 6px; background: var(--accent-glow); border: 1px solid var(--accent); color: var(--accent); }
+        
+        /* Bottoni Azione (Linee e Magazzino) */
+        .action-chip { 
+            width: 48px; height: 48px; border-radius: 12px; border: 2px solid var(--border); 
+            background: var(--input-bg); cursor: pointer; display: flex; align-items: center; justify-content: center; 
+            font-size: 1.2rem; color: var(--text-muted); transition: 0.2s var(--bezier); 
+        }
+        .action-chip:active { transform: scale(0.9); }
+        .action-chip.fare.active { background: var(--accent-glow); border-color: var(--warning); color: var(--warning); } 
+        .action-chip.comprare.active { background: rgba(53, 110, 59, 0.15); border-color: var(--success); color: var(--success); }
+        
+        .qty-container { display: flex; align-items: center; gap: 6px; background: var(--input-bg); border: 2px solid var(--border); padding: 4px; border-radius: 12px; transition: 0.3s; }
+        .qty-container:focus-within { border-color: var(--accent); }
+        .qty-input { width: 50px; text-align: center; background: transparent; border: none; color: var(--accent); font-weight: 800; font-size: 1.2rem; }
+        .qty-btn { width: 36px; height: 36px; border-radius: 8px; border: none; background: var(--card); color: var(--text); cursor: pointer; display: flex; align-items: center; justify-content: center; font-weight: 800; } 
+        .qty-btn.plus { background: var(--accent-glow); color: var(--accent); border: 1px solid var(--accent); }
+        
+        tr.is-done { opacity: 0.4; background: rgba(0,0,0,0.1); transition: 0.4s; } 
+        tr.is-done .prod-name { text-decoration: line-through; color: var(--success); }
+        
+        .note-input { width: 100%; border: 1px solid var(--border); border-radius: 8px; padding: 10px 14px; font-size: 0.9rem; background: var(--input-bg); color: var(--text); margin-bottom: 6px; font-weight: 600; transition: border-color 0.3s; }
+        .note-input:focus { border-color: var(--accent); }
+
+        /* ==========================================================================
+           4. MODALI, INPUT E FISARMONICA (ACCORDION) LOGIN
+           ========================================================================== */
+        .modal-overlay { 
+            position: fixed; inset: 0; background: rgba(0,0,0,0.85); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+            display: none; justify-content: center; align-items: center; z-index: 5000; padding: 20px; pointer-events: auto; 
+        }
+        
+        .modal-box { 
+            background: var(--card); border-radius: var(--radius-main); width: 100%; max-width: 600px; 
+            padding: 32px; max-height: 85dvh; overflow-y: auto; border: 1px solid var(--border); 
+            animation: modalIn 0.3s var(--bezier) forwards; pointer-events: auto; box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+        }
+        
+        @keyframes modalIn { from { opacity: 0; transform: scale(0.9) translateY(20px); } to { opacity: 1; transform: scale(1) translateY(0); } }
+
+        .input-group { margin-bottom: 24px; } 
+        .input-group label { display: block; font-size: 0.8rem; font-weight: 800; color: var(--text-muted); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 1px;}
+        .input-group input, .input-group select, .input-group textarea { 
+            width: 100%; padding: 16px 20px; border-radius: 12px; border: 2px solid var(--border); 
+            background: var(--input-bg); color: var(--text); font-family: inherit; font-size: 1.05rem; font-weight: 700; transition: 0.3s; 
+        }
+        .input-group input:focus, .input-group select:focus, .input-group textarea:focus { border-color: var(--accent); background: var(--bg); }
+
+        .btn-action { 
+            border: 2px solid var(--accent); padding: 18px 24px; border-radius: 12px; font-weight: 800; 
+            cursor: pointer; display: flex; justify-content: center; align-items: center; gap: 10px; 
+            font-size: 1.05rem; transition: 0.2s; font-family: inherit; width: 100%; 
+            background: var(--accent-glow); color: var(--accent); text-transform: uppercase; letter-spacing: 1px;
+        }
+        .btn-action.solid { background: var(--accent); color: var(--bg); border-color: var(--accent); }
+        .btn-action:active { transform: scale(0.96); }
+
+        #toast-container { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); display: flex; flex-direction: column; gap: 12px; z-index: 10000; pointer-events: none; }
+        .toast { background: var(--card); color: var(--text); padding: 16px 24px; border-radius: 12px; font-size: 0.95rem; font-weight: 800; box-shadow: 0 10px 30px rgba(0,0,0,0.5); border: 2px solid var(--border); transition: 0.3s var(--bezier); }
+        
+        /* ACCORDION LOGIN STYLES (Fisarmonica) */
+        .accordion-group { margin-bottom: 12px; border: 2px solid var(--border); border-radius: 12px; overflow: hidden; background: var(--bg); }
+        .accordion-header { padding: 16px; background: var(--card); color: var(--text); font-weight: 800; cursor: pointer; display: flex; justify-content: space-between; align-items: center; transition: 0.3s; }
+        .accordion-header:hover { background: var(--border); }
+        .accordion-body { max-height: 0; overflow: hidden; transition: max-height 0.4s var(--bezier); background: var(--input-bg); }
+        .accordion-body.open { max-height: 400px; overflow-y: auto;}
+        .accordion-btn { display: block; width: 100%; padding: 14px 16px; text-align: left; background: transparent; border: none; border-bottom: 1px solid var(--border); color: var(--text-muted); font-weight: 700; font-size: 1rem; cursor: pointer; transition: 0.2s; font-family: inherit; }
+        .accordion-btn:last-child { border-bottom: none; }
+        .accordion-btn:hover, .accordion-btn.selected { background: var(--accent-glow); color: var(--accent); padding-left: 24px; }
+        
+        /* ==========================================================================
+           5. PROTOCOLLO CERBERO (PWA INSTALL BANNER) E MEDIA QUERIES
+           ========================================================================== */
+        #pwa-install-banner {
+            position: fixed; bottom: 0; left: 0; width: 100%; background: var(--card); border-top: 2px solid var(--accent); 
+            padding: 20px; z-index: 9999; display: none; flex-direction: row; align-items: center; justify-content: space-between;
+            box-shadow: 0 -10px 30px rgba(0,0,0,0.5); transform: translateY(100%); transition: transform 0.5s var(--bezier);
+            padding-bottom: calc(20px + var(--safe-bottom));
+        }
+        #pwa-install-banner.show { transform: translateY(0); }
+        
+        @media (max-width: 768px) { 
+            .sidebar { position: fixed; left: -100%; box-shadow: 20px 0 50px rgba(0,0,0,0.8); } 
+            .sidebar.open { left: 0; } 
+            td { display: block; width: 100%; border-bottom: none; padding: 16px 20px; } 
+            tr { border-bottom: 2px solid var(--border); padding: 8px 0; display: block; } 
+            
+            #pwa-install-banner { flex-direction: column; text-align: center; gap: 16px; }
+            #pwa-install-banner .btn-action { width: 100%; }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="pwa-install-banner">
+        <div style="display: flex; align-items: center; gap: 16px;">
+            <img src="Screenshot_20260515-025419.png" style="width: 56px; height: 56px; border-radius: 12px; border: 2px solid var(--accent); object-fit: cover;" alt="Icona App" onerror="this.style.display='none'">
+            <div style="text-align: left;">
+                <b style="color: var(--text); font-size: 1.1rem; display: block; margin-bottom: 4px;">Installa Scutum ERP</b>
+                <span style="color: var(--text-muted); font-size: 0.85rem; font-weight: 600;">Aggiungi alla Home per schermo intero e prestazioni native.</span>
+            </div>
+        </div>
+        <div style="display: flex; gap: 12px;">
+            <button class="btn-action" style="padding: 10px 16px; width: auto; font-size: 0.9rem; border-color: var(--border); background: var(--bg); color: var(--text-muted);" onclick="closePwaBanner()">
+                IGNORA
+            </button>
+            <button class="btn-action solid" style="padding: 10px 16px; width: auto; font-size: 0.9rem;" id="btn-install-pwa">
+                <i class="fa-solid fa-download"></i> INSTALLA
+            </button>
+        </div>
+    </div>
+
+    <div id="toast-container"></div>
+
+    <div id="auth-screen" class="spa-view active" style="align-items: center; justify-content: center; padding: 20px;">
+        <div class="card" style="width: 100%; max-width: 420px; text-align: center; padding: 48px 32px; border: 2px solid var(--border); position: relative; overflow: visible;">
+            
+            <img src="Screenshot_20260515-025419.png" style="width: 130px; height: 130px; border-radius: 50%; background: var(--bg); display: block; margin: -65px auto 24px; border: 4px solid var(--accent); object-fit: cover; box-shadow: 0 10px 20px rgba(0,0,0,0.5);" alt="Elmo Spartano Scutum" onerror="this.style.display='none'">
+            
+            <h2 style="font-weight: 800; font-size: 2rem; margin-bottom: 8px; color: var(--accent); letter-spacing: -1px; text-transform: uppercase;">Scutum ERP</h2>
+            <p style="font-size: 0.95rem; color: var(--text-muted); font-weight: 800; margin-bottom: 32px; text-transform: uppercase; letter-spacing: 2px;">Protocollo Accesso</p>
+            
+            <div class="input-group" style="text-align: left; margin-bottom: 24px;">
+                <label>Identità Operativa</label>
+                
+                <input type="hidden" id="login-selected-user" value="">
+                
+                <div id="login-accordion-container" style="margin-bottom: 16px;">
+                    </div>
+                
+                <div id="login-selected-display" style="display: none; background: rgba(53, 110, 59, 0.15); padding: 16px; border-radius: 12px; border: 1px solid var(--success); text-align: center;">
+                    <span style="font-size: 0.8rem; color: var(--success); font-weight: 800; text-transform: uppercase; display: block; margin-bottom: 4px;">Operatore Autorizzato</span>
+                    <span id="login-selected-name" style="color: var(--text); font-weight: 800; font-size: 1.2rem;"></span>
+                </div>
+            </div>
+            
+            <div class="input-group" style="text-align: left; margin-bottom: 40px;">
+                <label>Firma Criptografica (PIN)</label>
+                <input type="password" id="login-password" placeholder="••••" style="letter-spacing:8px; font-size:1.5rem; text-align:center;">
+            </div>
+            
+            <button class="btn-action solid" onclick="performLogin()">
+                INIZIALIZZA SESSIONE <i class="fa-solid fa-bolt" style="margin-left:8px;"></i>
+            </button>
+        </div>
+    </div>
+
+    <div id="checklist-hub" class="spa-view" style="align-items: center; padding: 24px; padding-top:calc(40px + var(--safe-top));">
+        <header style="width: 100%; max-width: 700px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 40px;">
+            <div style="font-weight: 800; font-size: 1.6rem; color: var(--accent); text-transform: uppercase;">
+                <i class="fa-solid fa-shield-halved" style="margin-right: 12px;"></i> Vettori Esterni
+            </div>
+            <button class="btn-action" style="width: auto; padding: 12px 20px; font-size:0.9rem; border-color: var(--danger); color: var(--danger); background: transparent;" onclick="logout()">
+                <i class="fa-solid fa-power-off"></i> DISCONNETTI
+            </button>
+        </header>
+        
+        <div id="checklist-buttons-container" style="width: 100%; max-width: 700px; display: grid; gap: 20px;">
+            </div>
+    </div>
+    <div id="app-wrapper" class="spa-view" style="flex-direction: row;">
+        
+        <div id="mobile-overlay" style="position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 900; display: none; opacity: 0; transition: 0.3s var(--bezier);" onclick="document.getElementById('sidebar').classList.remove('open'); this.style.opacity='0'; setTimeout(()=>this.style.display='none', 300);"></div>
+        
+        <aside class="sidebar" id="sidebar">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 32px; position: relative; z-index: 10;">
+                <div class="sidebar-logo">
+                    <i class="fa-solid fa-shield-cat"></i> SCUTUM
+                </div>
+                <i class="fa-solid fa-xmark" style="font-size: 1.5rem; color: var(--text-muted); cursor: pointer; display: none;" id="sidebar-close" onclick="document.getElementById('sidebar').classList.remove('open'); document.getElementById('mobile-overlay').style.opacity='0'; setTimeout(()=>document.getElementById('mobile-overlay').style.display='none', 300);"></i>
+            </div>
+            
+            <div style="background: var(--input-bg); border: 1px solid var(--border); padding: 16px; border-radius: var(--radius-main); margin-bottom: 32px; display: flex; align-items: center; gap: 16px; position: relative; z-index: 10;">
+                <img src="Screenshot_20260515-025419.png" style="width: 48px; height: 48px; border-radius: 12px; border: 2px solid var(--accent); object-fit: cover;" alt="Operatore" onerror="this.style.display='none'">
+                <div>
+                    <div style="font-size: 0.7rem; color: var(--accent); font-weight: 800; letter-spacing: 1.5px;">OPERATORE</div>
+                    <div style="font-weight: 800; font-size: 1.05rem; color: var(--text); text-transform: uppercase;" id="current-user-label">ROOT</div>
+                </div>
+            </div>
+            
+            <div style="flex: 1; overflow-y: auto; position: relative; z-index: 10; padding-right: 8px;">
+                
+                <div style="font-size: 0.75rem; font-weight: 800; color: var(--text-muted); margin-bottom: 12px; letter-spacing: 1.5px;">SEDI ALLACCIATE</div>
+                <div id="sedi-menu" style="margin-bottom: 32px;"></div>
+                
+                <div style="font-size: 0.75rem; font-weight: 800; color: var(--text-muted); margin-bottom: 12px; letter-spacing: 1.5px;">FILTRO REPARTI</div>
+                <div id="categories-filter-menu" style="margin-bottom: 32px;"></div>
+                
+                <div style="font-size: 0.75rem; font-weight: 800; color: var(--text-muted); margin-bottom: 12px; letter-spacing: 1.5px;">AZIONI DI LINEA</div>
+                <div class="nav-item" onclick="openReportModal()">
+                    <i class="fa-solid fa-file-export" style="color: var(--success);"></i> Sintesi Report
+                </div>
+                
+                <div class="manager-only" style="font-size: 0.75rem; font-weight: 800; color: var(--accent); margin-bottom: 12px; margin-top: 32px; display: none; letter-spacing: 1.5px;">SISTEMA ASSOLUTO</div>
+                
+                <div class="nav-item manager-only" style="display: none;" onclick="openDashboard()">
+                    <i class="fa-solid fa-chart-line"></i> Telemetria KPI
+                </div>
+                <div class="nav-item manager-only" style="display: none;" onclick="openCloudHub()">
+                    <i class="fa-solid fa-cloud"></i> Sync Rete Globale
+                </div>
+                <div class="nav-item manager-only" style="display: none;" onclick="openTimeMachine()">
+                    <i class="fa-solid fa-clock-rotate-left"></i> Macchina del Tempo
+                </div>
+                
+                <div class="nav-item manager-only edit-only" style="display: none; margin-top:16px;" onclick="openCategoryManager()">
+                    <i class="fa-solid fa-tags"></i> Struttura Reparti
+                </div>
+                <div class="nav-item manager-only edit-only" style="display: none;" onclick="openSuppliersManager()">
+                    <i class="fa-solid fa-truck"></i> Rete Fornitori
+                </div>
+                <div class="nav-item manager-only edit-only" style="display: none;" onclick="openRolesManager()">
+                    <i class="fa-solid fa-users"></i> Accessi a Matrioska
+                </div>
+                <div class="nav-item manager-only edit-only" style="display: none;" onclick="openChecklistManager()">
+                    <i class="fa-solid fa-link"></i> Nodi Esterni (Hub)
+                </div>
+                <div class="nav-item manager-only edit-only" style="display: none;" onclick="setupPin()">
+                    <i class="fa-solid fa-key"></i> Ricalibra Firma Root
+                </div>
+            </div>
+            
+            <div style="margin-top: 24px; display: flex; flex-direction: column; gap: 12px; position: relative; z-index: 10;">
+                <button class="btn-action manager-only" style="display: none; background: var(--bg);" onclick="requestEditMode()" id="sidebar-edit-status">
+                    <i class="fa-solid fa-unlock"></i> SBLOCCA MATRICE
+                </button>
+                <button class="btn-action manager-only" style="display: none; background: var(--bg);" onclick="shareApp()">
+                    <i class="fa-solid fa-share-nodes"></i> CONDIVIDI ACCESSO
+                </button>
+                <button class="btn-action" style="background: rgba(140, 34, 34, 0.1); border: 1px solid var(--danger); color: var(--danger);" onclick="logout()">
+                    <i class="fa-solid fa-power-off"></i> DISCONNETTI
+                </button>
+            </div>
+        </aside>
+
+        <main>
+            <div class="top-bar" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+                <div style="display: flex; align-items: center; gap: 20px;">
+                    <button class="btn-action" style="width:52px; height:52px; padding:0; background:var(--card); border:1px solid var(--border); color:var(--text);" onclick="document.getElementById('sidebar').classList.add('open'); document.getElementById('mobile-overlay').style.display='block'; setTimeout(()=>document.getElementById('mobile-overlay').style.opacity='1', 10);">
+                        <i class="fa-solid fa-bars"></i>
+                    </button>
+                    <span id="header-title" style="font-weight: 800; font-size: 1.4rem; color: var(--text); text-transform: uppercase;">Calcolo...</span>
+                </div>
+                <div style="display: flex; gap: 16px;">
+                    <button class="btn-action" style="width:52px; height:52px; padding:0; background:var(--card); border:1px solid var(--border); color:var(--text);" onclick="toggleTheme()" title="Illuminazione">
+                        <i class="fa-solid fa-moon"></i>
+                    </button>
+                    <button class="btn-action" style="width:52px; height:52px; padding:0; background:rgba(140, 34, 34, 0.15); border:1px solid var(--danger); color:var(--danger);" onclick="smartReset()" title="Purga Operazioni Odierne">
+                        <i class="fa-solid fa-rotate-left"></i>
+                    </button>
+                </div>
+            </div>
+
+            <div class="search-pill">
+                <i class="fa-solid fa-magnifying-glass"></i>
+                <input type="text" id="search-input" placeholder="Scansiona matrice per prodotto, nota o fornitore...">
+            </div>
+
+            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px; margin-bottom: 32px; padding-bottom: 24px; border-bottom: 1px solid var(--border);">
+                <div id="folders-menu" style="display: flex; gap: 12px; overflow-x: auto; padding-bottom: 8px;"></div>
+                
+                <div style="display: flex; gap: 12px;">
+                    <button class="btn-action" style="background:var(--card); border:1px solid var(--border); color:var(--text-muted); font-size:0.85rem; padding:10px 18px; width:auto;" id="btn-show-hidden" onclick="toggleHiddenItems()">
+                        <i class="fa-solid fa-eye"></i> OVERRIDE
+                    </button>
+                    <button class="btn-action" style="background:var(--card); border:1px solid var(--border); color:var(--text-muted); font-size:0.85rem; padding:10px 18px; width:auto;" id="btn-fifo" onclick="toggleFIFO()">
+                        <i class="fa-solid fa-arrow-down-short-wide"></i> F.I.F.O.
+                    </button>
+                </div>
+            </div>
+
+            <div id="main-content" style="flex: 1;"></div>
+            
+            <button id="floating-paste-btn" class="btn-action solid" style="position: fixed; bottom: 40px; right: 40px; width: auto; z-index: 100; display: none; box-shadow: 0 10px 30px rgba(201,164,100, 0.4); padding: 20px 32px;" onclick="pasteSection()">
+                <i class="fa-solid fa-paste"></i> INNESTA MATRICE CLONATA
+            </button>
+        </main>
+    </div>
+    <div class="modal-overlay" id="modal-info">
+        <div class="modal-box">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; border-bottom: 1px solid var(--border); padding-bottom: 16px;">
+                <h3 style="font-weight: 800; font-size: 1.4rem; color: var(--accent);" id="read-info-title">Info Nodo</h3>
+                <i class="fa-solid fa-arrow-left" style="font-size: 1.4rem; cursor: pointer; color: var(--text-muted);" onclick="closeModals()"></i>
+            </div>
+            <div id="read-info-content" style="font-size: 1.05rem; line-height: 1.6; padding: 24px; background: var(--input-bg); border-radius: 12px; border: 1px solid var(--border); color: var(--text);">
+                </div>
+        </div>
+    </div>
+    
+    <div class="modal-overlay" id="modal-item">
+        <div class="modal-box">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; border-bottom: 1px solid var(--border); padding-bottom: 16px;">
+                <h3 style="font-weight: 800; font-size: 1.4rem; color: var(--accent);" id="modal-item-title">Costruisci Nodo</h3>
+                <i class="fa-solid fa-arrow-left" style="font-size: 1.4rem; cursor: pointer; color: var(--text-muted);" onclick="closeModals()"></i>
+            </div>
+            
+            <div class="input-group">
+                <label>Identificativo Assoluto *</label>
+                <input type="text" id="input-item-name" placeholder="Es. Impasto Classico">
+            </div>
+            
+            <div class="input-group">
+                <label>Risonanza Reparto</label>
+                <select id="input-item-cat" onchange="toggleItemFields()"></select>
+            </div>
+            
+            <div class="input-group" style="background: var(--accent-glow); padding: 20px; border-radius: 12px; border: 1px solid rgba(201,164,100,0.2);">
+                <label style="color: var(--accent);">Unità di Misura (UoM)</label>
+                <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 12px;">Definisci la materia: "Kg", "Scatola x12", "Sacco 25kg". Elimina le ambiguità.</p>
+                <input type="text" id="input-item-uom" style="background: var(--card); border-color: var(--accent); color: var(--text); font-weight: 800;">
+            </div>
+            
+            <div class="input-group" style="display: flex; gap: 16px;" id="wrapper-ls">
+                <div style="flex: 1;">
+                    <label>Linea Produzione (L)</label>
+                    <input type="text" id="input-item-line" placeholder="Es. 40 Panetti">
+                </div>
+                <div style="flex: 1;">
+                    <label>Scorta Emergenza (S)</label>
+                    <input type="text" id="input-item-stock" placeholder="Es. 2 Sacchi">
+                </div>
+            </div>
+            
+            <div class="input-group" id="wrapper-ideal" style="display: none; background: rgba(53,110,59,0.1); padding: 20px; border-radius: 12px; border: 1px solid rgba(53,110,59,0.3);">
+                <label style="color: var(--success);">Target Matematico Giacenza (N°)</label>
+                <input type="number" id="input-item-ideal" style="background: var(--card); font-size: 1.2rem; text-align: center; color: var(--text); font-weight: 800;">
+            </div>
+            
+            <div class="input-group">
+                <label>Direttive e Ricette</label>
+                <textarea id="input-item-info" rows="3" placeholder="Note operative per la brigata..."></textarea>
+            </div>
+            
+            <div class="input-group" style="display: flex; gap: 16px;">
+                <div style="flex: 1;">
+                    <label>Fornitore</label>
+                    <select id="input-item-supplier-cat"></select>
+                </div>
+                <div style="flex: 1;">
+                    <label>Costo Unitario (€)</label>
+                    <input type="number" step="0.01" id="input-item-cost" placeholder="0.00">
+                </div>
+            </div>
+            
+            <div class="input-group">
+                <label>Scadenza Time-Bomb (HACCP)</label>
+                <input type="date" id="input-item-expiry">
+            </div>
+            
+            <div class="input-group">
+                <label>Matrice Temporale di Visibilità</label>
+                <div id="item-days-matrix" style="display: flex; gap: 8px; flex-wrap: wrap;">
+                    <div class="action-chip" data-day="1" onclick="toggleDay(this)" style="font-weight: 800; font-size: 0.9rem;">LU</div>
+                    <div class="action-chip" data-day="2" onclick="toggleDay(this)" style="font-weight: 800; font-size: 0.9rem;">MA</div>
+                    <div class="action-chip" data-day="3" onclick="toggleDay(this)" style="font-weight: 800; font-size: 0.9rem;">ME</div>
+                    <div class="action-chip" data-day="4" onclick="toggleDay(this)" style="font-weight: 800; font-size: 0.9rem;">GI</div>
+                    <div class="action-chip" data-day="5" onclick="toggleDay(this)" style="font-weight: 800; font-size: 0.9rem;">VE</div>
+                    <div class="action-chip" data-day="6" onclick="toggleDay(this)" style="font-weight: 800; font-size: 0.9rem;">SA</div>
+                    <div class="action-chip" data-day="0" onclick="toggleDay(this)" style="font-weight: 800; font-size: 0.9rem;">DO</div>
+                </div>
+            </div>
+            
+            <button class="btn-action solid" onclick="saveItem()">INNESTA NEL DATABASE</button>
+        </div>
+    </div>
+    
+    <div class="modal-overlay" id="modal-roles-manager">
+        <div class="modal-box">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; border-bottom: 1px solid var(--border); padding-bottom: 16px;">
+                <h3 style="font-weight: 800; font-size: 1.4rem; color: var(--accent);">Organigramma</h3>
+                <i class="fa-solid fa-arrow-left" style="font-size: 1.4rem; cursor: pointer; color: var(--text-muted);" onclick="closeModals()"></i>
+            </div>
+            
+            <div id="roles-list-editor" style="margin-bottom: 24px;"></div>
+            
+            <div style="background: var(--input-bg); padding: 24px; border-radius: 12px; border: 1px solid var(--border);">
+                <input type="hidden" id="edit-role-id">
+                
+                <div class="input-group">
+                    <label>Identità Operatore</label>
+                    <input type="text" id="new-role-name" placeholder="Es. Addetto Forno">
+                </div>
+                <div class="input-group">
+                    <label>Macro-Gruppo (Per Fisarmonica Login)</label>
+                    <input type="text" id="new-role-group" placeholder="Es. Brigata Cucina">
+                </div>
+                <div class="input-group">
+                    <label>Firma Criptografica (PIN)</label>
+                    <input type="text" id="new-role-pin" placeholder="Es. 1234">
+                </div>
+                <div class="input-group">
+                    <label>Livello di Autorizzazione</label>
+                    <select id="new-role-type" onchange="toggleRoleCategories()">
+                        <option value="erp">Operatività Completa (Accesso Griglia)</option>
+                        <option value="checklist">Modalità Isolata (Solo Vettori Esterni)</option>
+                    </select>
+                </div>
+                
+                <div class="input-group" id="role-categories-wrapper">
+                    <label>Visibilità Reparti Limitata</label>
+                    <div id="new-role-categories" style="display: flex; flex-direction: column; gap: 12px; background: var(--card); padding: 16px; border-radius: 12px; border: 1px solid var(--border);">
+                        </div>
+                </div>
+                
+                <div style="display: flex; gap: 12px;">
+                    <button class="btn-action solid" onclick="saveRole()">MEMORIZZA</button>
+                    <button class="btn-action" style="display: none; background: transparent; border-color: var(--border); color: var(--text);" id="btn-cancel-role" onclick="resetRoleForm()">ANNULLA</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="modal-checklist-manager">
+        <div class="modal-box">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; border-bottom: 1px solid var(--border); padding-bottom: 16px;">
+                <h3 style="font-weight: 800; font-size: 1.4rem; color: var(--accent);">Nodi Esterni</h3>
+                <i class="fa-solid fa-arrow-left" style="font-size: 1.4rem; cursor: pointer; color: var(--text-muted);" onclick="closeModals()"></i>
+            </div>
+            
+            <div id="checklist-links-editor" style="margin-bottom: 24px;"></div>
+            
+            <div style="background: var(--input-bg); padding: 24px; border-radius: 12px; border: 1px solid var(--border);">
+                <div class="input-group">
+                    <label>Label Procedura</label>
+                    <input type="text" id="new-checklist-name" placeholder="Es. Chiusura Cassa">
+                </div>
+                
+                <div class="input-group">
+                    <label>URI di Destinazione Sicura</label>
+                    <input type="url" id="new-checklist-url" placeholder="https://...">
+                </div>
+                
+                <div class="input-group">
+                    <label>Marcatore Visivo</label>
+                    <select id="new-checklist-color">
+                        <option value="var(--success)">Verde (Routine)</option>
+                        <option value="var(--danger)">Rosso (Allerta)</option>
+                        <option value="var(--accent)">Oro (Documentazione)</option>
+                    </select>
+                </div>
+                
+                <button class="btn-action solid" onclick="addChecklistLink()">ALLACCIA NODO</button>
+            </div>
+        </div>
+    </div>
+    <div class="modal-overlay" id="modal-backup">
+        <div class="modal-box">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; border-bottom: 1px solid var(--border); padding-bottom: 16px;">
+                <h3 style="font-weight: 800; font-size: 1.4rem; color: var(--warning);">Macchina del Tempo</h3>
+                <i class="fa-solid fa-arrow-left" style="font-size: 1.4rem; cursor: pointer; color: var(--text-muted);" onclick="closeModals()"></i>
+            </div>
+            
+            <p style="font-size: 0.95rem; color: var(--text-muted); margin-bottom: 24px; line-height: 1.6; background: var(--input-bg); padding: 16px; border-radius: 8px; border-left: 4px solid var(--warning);">
+                Memoria di isolamento locale. La selezione di un nodo temporale provocherà la <b>sovrascrittura totale e irreversibile</b> dello stato attuale della matrice. Usare solo in caso di corruzione.
+            </p>
+            
+            <div id="backup-list" style="display: flex; flex-direction: column; gap: 12px;">
+                </div>
+        </div>
+    </div>
+    
+    <div class="modal-overlay" id="modal-cloud">
+        <div class="modal-box">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; border-bottom: 1px solid var(--border); padding-bottom: 16px;">
+                <h3 style="font-weight: 800; font-size: 1.4rem; color: var(--accent);">Sync Rete Globale</h3>
+                <i class="fa-solid fa-arrow-left" style="font-size: 1.4rem; cursor: pointer; color: var(--text-muted);" onclick="closeModals()"></i>
+            </div>
+            
+            <div style="background: var(--input-bg); padding: 24px; border-radius: 12px; margin-bottom: 24px; border: 1px solid var(--accent);">
+                <div class="input-group">
+                    <label style="color: var(--accent);">Codice Alias (Nome Mnemonico o Codice Assoluto)</label>
+                    <input type="text" id="cloud-alias-input" placeholder="es. comando_centrale" style="font-weight: 800; text-transform: lowercase; background: var(--card); font-size: 1.2rem; text-align: center; letter-spacing: 2px;">
+                </div>
+                
+                <div class="input-group">
+                    <label style="color: var(--accent);">Firma di Rilascio</label>
+                    <input type="text" id="cloud-version-name" placeholder="Es. Aggiornamento Menù Serale" style="background: var(--card);">
+                </div>
+                
+                <div style="display: flex; gap: 12px; margin-top: 32px;">
+                    <button class="btn-action" style="background: var(--card); color: var(--text); border: 2px solid var(--border);" onclick="downloadFromCloudHub()">
+                        <i class="fa-solid fa-download"></i> SCARICA
+                    </button>
+                    <button class="btn-action solid" onclick="uploadToCloudHub()">
+                        <i class="fa-solid fa-upload"></i> UPLOAD
+                    </button>
+                </div>
+            </div>
+            
+            <div id="cloud-status-message" style="text-align: center; font-weight: 800; color: var(--success); display: none; margin-bottom: 16px; padding: 16px; border: 1px dashed var(--success); background: rgba(53,110,59,0.1); border-radius: 12px; font-size: 0.95rem;">
+                </div>
+            
+            <div id="cloud-versions-list"></div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="modal-report">
+        <div class="modal-box" style="max-width: 800px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; border-bottom: 1px solid var(--border); padding-bottom: 16px;">
+                <h3 style="font-weight: 800; font-size: 1.4rem; color: var(--success);">Sintesi Dati Isolati</h3>
+                <i class="fa-solid fa-arrow-left" style="font-size: 1.4rem; cursor: pointer; color: var(--text-muted);" onclick="closeModals()"></i>
+            </div>
+            
+            <div style="display: flex; gap: 8px; background: var(--input-bg); padding: 8px; border-radius: 12px; margin-bottom: 24px; border: 1px solid var(--border);">
+                <div id="tab-report-fare" style="flex: 1; text-align: center; padding: 14px; border-radius: 8px; cursor: pointer; font-weight: 800; background: var(--card); color: var(--accent); border: 1px solid var(--accent); transition: 0.3s;" onclick="switchReportTab('fare')">MATRICE CUCINA</div>
+                <div id="tab-report-comprare" style="flex: 1; text-align: center; padding: 14px; border-radius: 8px; cursor: pointer; font-weight: 800; color: var(--text-muted); transition: 0.3s;" onclick="switchReportTab('comprare')">MATRICE ORDINI</div>
+            </div>
+            
+            <div id="report-preview-fare" style="max-height: 50vh; overflow-y: auto; padding: 24px; background: var(--input-bg); border-radius: 12px; margin-bottom: 24px; border: 1px solid var(--border);"></div>
+            
+            <div id="report-preview-comprare" style="display: none; max-height: 50vh; overflow-y: auto; padding: 24px; background: var(--input-bg); border-radius: 12px; margin-bottom: 24px; border: 1px solid var(--border);"></div>
+            
+            <div style="display: flex; gap: 16px;">
+                <button class="btn-action" style="background: #25D366; color: white; border: none; font-size: 1.1rem;" onclick="copyReportText()">
+                    <i class="fa-brands fa-whatsapp" style="font-size: 1.4rem;"></i> TRASMETTI
+                </button>
+                <button class="btn-action solid" style="font-size: 1.1rem;" onclick="downloadReportExcel()">
+                    <i class="fa-solid fa-file-csv"></i> ESPORTA CSV
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <div class="modal-overlay" id="modal-dashboard">
+        <div class="modal-box">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; border-bottom: 1px solid var(--border); padding-bottom: 16px;">
+                <h3 style="font-weight: 800; font-size: 1.4rem; color: var(--accent);">Telemetria Operativa</h3>
+                <i class="fa-solid fa-arrow-left" style="font-size: 1.4rem; cursor: pointer; color: var(--text-muted);" onclick="closeModals()"></i>
+            </div>
+            
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                <div style="background: var(--input-bg); padding: 24px; border-radius: 12px; text-align: center; border: 1px solid var(--border);">
+                    <div style="font-size: 0.75rem; font-weight: 800; color: var(--text-muted); letter-spacing: 1px;">STIMA CAPITALE</div>
+                    <div id="dash-val" style="font-size: 1.8rem; font-weight: 800; color: var(--accent); margin-top: 12px;">€ 0</div>
+                </div>
+                <div style="background: var(--input-bg); padding: 24px; border-radius: 12px; text-align: center; border: 1px solid var(--border);">
+                    <div style="font-size: 0.75rem; font-weight: 800; color: var(--text-muted); letter-spacing: 1px;">ALLERTE HACCP</div>
+                    <div id="dash-exp" style="font-size: 1.8rem; font-weight: 800; color: var(--danger); margin-top: 12px;">0</div>
+                </div>
+                <div style="grid-column: span 2; background: rgba(53,110,59,0.1); padding: 32px; border-radius: 12px; text-align: center; border: 1px solid rgba(53,110,59,0.3);">
+                    <div style="font-size: 0.85rem; font-weight: 800; color: var(--success); letter-spacing: 2px;">COMPLETAMENTO TURNO</div>
+                    <div id="dash-prog" style="font-size: 3.5rem; font-weight: 800; color: var(--success); margin-top: 16px; text-shadow: 0 0 20px rgba(53,110,59,0.2);">0%</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="modal-overlay" id="modal-sede">
+        <div class="modal-box">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; border-bottom: 1px solid var(--border); padding-bottom: 16px;">
+                <h3 style="font-weight: 800; font-size: 1.4rem; color: var(--accent);">Gestione Sede</h3>
+                <i class="fa-solid fa-arrow-left" style="font-size: 1.4rem; cursor: pointer; color: var(--text-muted);" onclick="closeModals()"></i>
+            </div>
+            <div class="input-group">
+                <label>Identificativo Sede</label>
+                <input type="text" id="input-sede-name" placeholder="Es. Comando Centrale">
+            </div>
+            <button class="btn-action solid" onclick="saveSede()">INNESTA</button>
+        </div>
+    </div>
+    
+    <div class="modal-overlay" id="modal-folder">
+        <div class="modal-box">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; border-bottom: 1px solid var(--border); padding-bottom: 16px;">
+                <h3 style="font-weight: 800; font-size: 1.4rem; color: var(--accent);">Gestione Turno</h3>
+                <i class="fa-solid fa-arrow-left" style="font-size: 1.4rem; cursor: pointer; color: var(--text-muted);" onclick="closeModals()"></i>
+            </div>
+            <div class="input-group">
+                <label>Label Turno</label>
+                <input type="text" id="input-folder-name" placeholder="Es. Sabato Mattina">
+            </div>
+            <button class="btn-action solid" onclick="saveFolder()">INNESTA</button>
+        </div>
+    </div>
+    
+    <div class="modal-overlay" id="modal-section">
+        <div class="modal-box">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; border-bottom: 1px solid var(--border); padding-bottom: 16px;">
+                <h3 style="font-weight: 800; font-size: 1.4rem; color: var(--accent);">Cella Logica</h3>
+                <i class="fa-solid fa-arrow-left" style="font-size: 1.4rem; cursor: pointer; color: var(--text-muted);" onclick="closeModals()"></i>
+            </div>
+            <div class="input-group">
+                <label>Nome Settore</label>
+                <input type="text" id="input-section-name" placeholder="Es. Frigo Latticini">
+            </div>
+            <div class="input-group">
+                <label>Appartenenza Reparto (Risonanza Colore)</label>
+                <select id="input-section-color"></select>
+            </div>
+            <button class="btn-action solid" onclick="saveSection()">INNESTA</button>
+        </div>
+    </div>
+    
+    <div class="modal-overlay" id="modal-category-manager">
+        <div class="modal-box">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; border-bottom: 1px solid var(--border); padding-bottom: 16px;">
+                <h3 style="font-weight: 800; font-size: 1.4rem; color: var(--accent);">Struttura Reparti</h3>
+                <i class="fa-solid fa-arrow-left" style="font-size: 1.4rem; cursor: pointer; color: var(--text-muted);" onclick="closeModals()"></i>
+            </div>
+            
+            <div id="category-list-editor" style="margin-bottom: 24px; display: flex; flex-direction: column; gap: 8px;"></div>
+            
+            <div style="background: var(--input-bg); padding: 24px; border-radius: 12px; border: 1px solid var(--border);">
+                <div class="input-group">
+                    <label>Label Reparto</label>
+                    <input type="text" id="new-cat-name" placeholder="Es. Pizzeria">
+                </div>
+                <div id="color-palette" style="display: flex; gap: 12px; margin-bottom: 24px; flex-wrap: wrap;"></div>
+                <div class="input-group">
+                    <label>Motore di Calcolo</label>
+                    <select id="new-cat-type">
+                        <option value="standard">Standard (Checklist Binaria Cucinata)</option>
+                        <option value="magazzino">Magazzino (Contatore Ibrido Matematico)</option>
+                    </select>
+                </div>
+                <button class="btn-action solid" style="background: var(--success); color: white; border-color: var(--success);" onclick="addCategory()">GENERA NODO REPARTO</button>
+            </div>
+        </div>
+    </div>
+    
+    <div class="modal-overlay" id="modal-suppliers-manager">
+        <div class="modal-box">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; border-bottom: 1px solid var(--border); padding-bottom: 16px;">
+                <h3 style="font-weight: 800; font-size: 1.4rem; color: var(--accent);">Rete Fornitori</h3>
+                <i class="fa-solid fa-arrow-left" style="font-size: 1.4rem; cursor: pointer; color: var(--text-muted);" onclick="closeModals()"></i>
+            </div>
+            
+            <div id="suppliers-list-editor" style="margin-bottom: 24px; display: flex; flex-direction: column; gap: 8px;"></div>
+            
+            <div style="background: var(--input-bg); padding: 24px; border-radius: 12px; border: 1px solid var(--border);">
+                <div class="input-group">
+                    <label>Identificativo Fornitore</label>
+                    <input type="text" id="new-supplier-name" placeholder="Es. Rossi Alimentari">
+                </div>
+                <button class="btn-action solid" onclick="addSupplier()">ALLACCIA FORNITORE</button>
+            </div>
+        </div>
+    </div>
+    <script>
+        // ==========================================================================
+        // 0. MATRICE GLOBALE DELLE VARIABILI E COSTANTI
+        // ==========================================================================
+        const CLOUD_KEY = "$2a$10$cANUKKt8gusYBU0s1g35UeBKFJM21uWzSe/ugzWuHGeZhj6C7KEui";
+        const MASTER_KEY_HASH = "OTk5OQ=="; // Firma Assoluta di Root: 9999
+        
+        // Palette Scutum Estesa (Per i reparti logici)
+        const PALETTE = ["#C9A464", "#8C2222", "#356E3B", "#D2A850", "#4A1218", "#201311", "#8A7270", "#F2E8E4"];
+        
+        let appStructure = {}; 
+        let appState = {};
+        
+        let activeSede = null;
+        let activeFolder = null;
+        let activeCatFilter = 'tutti';
+        
+        let editMode = false;
+        let isFifo = false;
+        let showHiddenTimeGated = false;
+        let selectedColor = PALETTE[0];
+        let currentEdit = {};
+        let activeItemDays = [];
+        
+        // Recupero Sessione
+        let activeProfile = localStorage.getItem('nexus_session') || null; 
+        
+        let clipboardSection = null;
+        let currentReportTab = 'fare';
+
+        // Variabile di ancoraggio per il Protocollo Cerbero (PWA)
+        let deferredPrompt;
+
+        // ==========================================================================
+        // 1. CORE UTILITIES E UX (TOAST, MODALI, SANITIZZAZIONE)
+        // ==========================================================================
+        function showToast(message, type = 'info') {
+            const container = document.getElementById('toast-container');
+            if (!container) return;
+            
+            const toast = document.createElement('div');
+            toast.className = `toast`;
+            
+            let borderCol = type === 'success' ? 'var(--success)' : (type === 'error' ? 'var(--danger)' : 'var(--accent)');
+            toast.style.borderLeft = `4px solid ${borderCol}`;
+            
+            let icon = type === 'success' ? 'fa-circle-check' : (type === 'error' ? 'fa-triangle-exclamation' : 'fa-info-circle');
+            toast.innerHTML = `<i class="fa-solid ${icon}" style="color:${borderCol}; margin-right:12px;"></i> ${message}`;
+            
+            container.appendChild(toast);
+            
+            setTimeout(() => { 
+                toast.style.opacity = '0'; 
+                toast.style.transform = 'translateY(10px)'; 
+                setTimeout(() => toast.remove(), 300); 
+            }, 3500);
+        }
+
+        function sanitize(str) { 
+            if (str === null || str === undefined) return "";
+            return str.toString().replace(/[<>"]/g, "'").trim(); 
+        }
+
+        function generateId() { 
+            return Math.random().toString(36).substring(2, 11); 
+        }
+
+        function showModal(modalId) { 
+            const m = document.getElementById(modalId);
+            if(m) {
+                m.style.display = 'flex';
+                document.body.classList.add('modal-open');
+                history.pushState({ modal: modalId }, null, window.location.href);
+            }
+        }
+
+        function closeModals(eventOrGoBack = true) {
+            let wasOpen = false;
+            document.querySelectorAll('.modal-overlay').forEach(m => { 
+                if(m.style.display === 'flex') { 
+                    wasOpen = true; 
+                    m.style.animation = 'none'; 
+                    m.style.opacity = '0'; 
+                    setTimeout(() => { 
+                        m.style.display = 'none'; 
+                        m.style.opacity = '1'; 
+                        m.style.animation = 'modalIn 0.3s var(--bezier) forwards'; 
+                    }, 250); 
+                } 
+            });
+            document.body.classList.remove('modal-open');
+            if (wasOpen && eventOrGoBack) { history.back(); }
+        }
+        
+        window.addEventListener('popstate', () => closeModals(false));
+
+        function switchSpaView(viewId) { 
+            document.querySelectorAll('.spa-view').forEach(v => v.classList.remove('active')); 
+            const target = document.getElementById(viewId); 
+            if(target) target.classList.add('active'); 
+        }
+
+        function toggleTheme() { 
+            const current = document.documentElement.getAttribute('data-theme'); 
+            const next = current === 'light' ? 'dark' : 'light'; 
+            document.documentElement.setAttribute('data-theme', next); 
+            localStorage.setItem('nexus_theme', next); 
+        }
+
+        let searchTimeoutId; 
+        const searchInputEl = document.getElementById('search-input'); 
+        if(searchInputEl) {
+            searchInputEl.addEventListener('keyup', () => {
+                clearTimeout(searchTimeoutId); 
+                searchTimeoutId = setTimeout(() => {
+                    if(typeof renderContentCore === 'function') renderContentCore();
+                }, 250);
+            });
+        }
+
+        // ==========================================================================
+        // 2. PROTOCOLLO CERBERO (PWA INSTALLATION)
+        // ==========================================================================
+        window.addEventListener('beforeinstallprompt', (e) => {
+            // Impedisce a Chrome di mostrare il banner standard (mini-infobar)
+            e.preventDefault();
+            // Salva l'evento per attivarlo in seguito
+            deferredPrompt = e;
+            // Mostra la UI di installazione personalizzata Scutum
+            setTimeout(() => {
+                const banner = document.getElementById('pwa-install-banner');
+                if(banner) banner.classList.add('show');
+            }, 2000);
+        });
+
+        function closePwaBanner() {
+            const banner = document.getElementById('pwa-install-banner');
+            if(banner) banner.classList.remove('show');
+        }
+
+        const btnInstall = document.getElementById('btn-install-pwa');
+        if(btnInstall) {
+            btnInstall.addEventListener('click', async () => {
+                closePwaBanner();
+                if (deferredPrompt) {
+                    // Mostra il prompt nativo
+                    deferredPrompt.prompt();
+                    // Attendi che l'utente risponda
+                    const { outcome } = await deferredPrompt.userChoice;
+                    if (outcome === 'accepted') {
+                        showToast("Protocollo Cerbero attivato: Installazione in corso.", "success");
+                    }
+                    deferredPrompt = null;
+                }
+            });
+        }
+
+        // ==========================================================================
+        // 3. PROTOCOLLO LAZZARO (BOOT E AUTORIPARAZIONE RAM)
+        // ==========================================================================
+        function initApp() {
+            console.log("[Kernel] Avvio Sequenza Scutum Absolute V15.4...");
+
+            const safeParse = (key) => { 
+                let data = localStorage.getItem(key); 
+                if (!data || data === "null" || data === "undefined" || data.trim() === "") return null; 
+                try { 
+                    let parsed = JSON.parse(data); 
+                    if (typeof parsed !== 'object' || Array.isArray(parsed) || parsed === null) return null; 
+                    return parsed; 
+                } catch(e) { return null; } 
+            };
+
+            try {
+                appState = safeParse('nexus_state') || safeParse('cucina_v13_state') || {}; 
+                let rawStruct = safeParse('nexus_struct') || safeParse('cucina_v13_struct');
+                
+                if (rawStruct && rawStruct.sedi && typeof rawStruct.sedi === 'object') { 
+                    appStructure = rawStruct; 
+                } else { 
+                    const sid = 'sede_1'; const fid = 'fol_1'; 
+                    appStructure = { 
+                        sedi: { 
+                            [sid]: { 
+                                id: sid, name: "COMANDO CENTRALE", 
+                                folders: { [fid]: { id: fid, name: "TURNO ROOT", sections: [] } }, 
+                                roles: [], checklists: [], supplierCategories: [], 
+                                categories: [{id:'c1', name:'Generale', color:'var(--accent)', type:'standard'}] 
+                            } 
+                        } 
+                    }; 
+                }
+
+                if (Object.keys(appStructure.sedi).length === 0) { 
+                    const sid = 's_rec'; 
+                    appStructure.sedi = { 
+                        [sid]: { 
+                            id: sid, name: "RECOVERY ROOT", folders: {}, roles: [], checklists: [], supplierCategories: [], 
+                            categories: [{id:'c1', name:'Generale', color:'var(--accent)', type:'standard'}] 
+                        } 
+                    }; 
+                }
+                
+                Object.values(appStructure.sedi).forEach(s => { 
+                    if(!Array.isArray(s.categories) || s.categories.length === 0) s.categories = [{id:'c1', name:'Generale', color:'var(--accent)', type:'standard'}]; 
+                    if(!Array.isArray(s.roles)) s.roles = []; 
+                    if(!Array.isArray(s.checklists)) s.checklists = []; 
+                    if(!Array.isArray(s.supplierCategories)) s.supplierCategories = []; 
+                    if(!s.folders || typeof s.folders !== 'object') s.folders = {}; 
+                });
+                
+                let migrated = false; 
+                Object.keys(appState).forEach(k => {
+                    let st = appState[k]; 
+                    if (st && typeof st === 'object' && !Array.isArray(st)) { 
+                        if(st.fare === undefined) { st.fare = false; migrated = true; } 
+                        if(st.comprare === undefined) { st.comprare = false; migrated = true; } 
+                        if(st.n_fare === undefined) { st.n_fare = ''; migrated = true; } 
+                        if(st.n_comprare === undefined) { st.n_comprare = ''; migrated = true; } 
+                        if(st.q === undefined) { st.q = 0; migrated = true; } 
+                    } else { 
+                        delete appState[k]; migrated = true; 
+                    } 
+                });
+                
+                saveStructure(); 
+                if(migrated) saveState();
+                
+                const sKeys = Object.keys(appStructure.sedi); 
+                activeSede = sKeys.length > 0 ? sKeys[0] : null;
+                
+                if(activeSede && appStructure.sedi[activeSede].folders) { 
+                    const fKeys = Object.keys(appStructure.sedi[activeSede].folders); 
+                    activeFolder = fKeys.length > 0 ? fKeys[0] : null; 
+                }
+                
+                if(localStorage.getItem('nexus_theme') === 'light') { document.documentElement.setAttribute('data-theme','light'); } 
+                else { document.documentElement.setAttribute('data-theme','dark'); }
+                
+                checkNewDayAndBackup(); 
+                if (typeof checkUrlParams === 'function') checkUrlParams(); 
+                checkAuthentication(); 
+
+            } catch(e) { 
+                console.error("[Kernel] Anomalia in RAM. Ripristino di emergenza.", e); 
+                appStructure = {sedi:{}}; appState = {}; localStorage.removeItem('nexus_struct'); initApp(); 
+            }
+        }
+
+        function saveStructure() { localStorage.setItem('nexus_struct', JSON.stringify(appStructure)); } 
+        function saveState() { localStorage.setItem('nexus_state', JSON.stringify(appState)); }
+
+        // ==========================================================================
+        // 4. SICUREZZA ROOT E MACCHINA DEL TEMPO LOCALE
+        // ==========================================================================
+        function setupPin() { 
+            const np = prompt("Imposta la nuova Firma Criptografica (PIN Root):"); 
+            if(np !== null && np.trim() !== "") { 
+                localStorage.setItem('nexus_root_pin', np.trim()); showToast("Firma Root blindata.", "success"); 
+            } 
+        }
+
+        function checkNewDayAndBackup() { 
+            const d = new Date().toLocaleDateString('it-IT'); 
+            const bkKey = 'nexus_bkp_' + d.replace(/\//g,'-'); 
+            
+            if (!localStorage.getItem(bkKey)) { localStorage.setItem(bkKey, JSON.stringify(appStructure)); }
+            
+            if (localStorage.getItem('nexus_day') !== d) { 
+                if (typeof smartReset === 'function') smartReset(true); 
+                localStorage.setItem('nexus_day', d); 
+            } 
+        }
+
+        function openTimeMachine() { 
+            const list = document.getElementById('backup-list'); 
+            if(!list) return; 
+            list.innerHTML = ''; 
+            let bks = []; 
+            for(let i=0; i<localStorage.length; i++) {
+                const k = localStorage.key(i); if(k && k.startsWith('nexus_bkp_')) bks.push(k);
+            } 
+            if(bks.length === 0) {
+                list.innerHTML = '<p style="text-align:center; color:var(--text-muted); padding: 24px; border: 1px dashed var(--border); border-radius: 12px;">Nessuna traccia temporale rilevata.</p>'; 
+                return showModal('modal-backup'); 
+            } 
+            bks.sort().reverse().forEach(k => { 
+                const dt = k.replace('nexus_bkp_', '').replace(/-/g, '/'); 
+                list.innerHTML += `
+                    <div style="display:flex; justify-content:space-between; align-items:center; background:var(--input-bg); padding:16px; border-radius:12px; border:1px solid var(--border);">
+                        <b style="color:var(--text); font-size: 1.05rem;"><i class="fa-solid fa-clock-rotate-left" style="color:var(--warning); margin-right:12px;"></i> ${dt}</b>
+                        <button class="btn-action solid" style="padding:10px 20px; width:auto; border-radius:8px; background:var(--warning); color:var(--bg); border:none;" onclick="restoreBackup('${k}')">RIPRISTINA</button>
+                    </div>`; 
+            }); 
+            showModal('modal-backup'); 
+        }
+
+        function restoreBackup(k) { 
+            if(confirm("[CRITICAL] Sovrascrivere lo stato attuale con il backup selezionato?")) { 
+                try { 
+                    const bd = localStorage.getItem(k); if(!bd) throw new Error("File corrotto."); 
+                    appStructure = JSON.parse(bd); saveStructure(); 
+                    showToast("Inversione temporale completata.", "success"); setTimeout(() => location.reload(), 800); 
+                } catch(e) { showToast("Errore di ripristino.", "error"); } 
+            } 
+        }
+        // ==========================================================================
+        // 5. GATEWAY DI AUTENTICAZIONE E LOGICA ACCORDION (FISARMONICA)
+        // ==========================================================================
+        function checkAuthentication() { 
+            if(!activeProfile) { 
+                renderAuthProfiles(); 
+                switchSpaView('auth-screen'); 
+            } else {
+                routeUser();
+            } 
+        }
+
+        function renderAuthProfiles() { 
+            const container = document.getElementById('login-accordion-container'); 
+            const display = document.getElementById('login-selected-display');
+            const hiddenInput = document.getElementById('login-selected-user');
+            
+            if(!container) return; 
+            container.innerHTML = ''; 
+            
+            hiddenInput.value = '';
+            display.style.display = 'none';
+            document.getElementById('login-selected-name').innerText = '';
+            
+            // 1. Gruppo ROOT (Sempre presente)
+            let html = `
+                <div class="accordion-group">
+                    <div class="accordion-header" onclick="toggleAccordion('acc-root')">
+                        <span><i class="fa-solid fa-chess-king" style="color:var(--accent); margin-right:8px;"></i> SISTEMA ASSOLUTO</span>
+                        <i class="fa-solid fa-chevron-down" id="icon-acc-root" style="transition:0.3s; color:var(--text-muted);"></i>
+                    </div>
+                    <div class="accordion-body" id="body-acc-root">
+                        <button class="accordion-btn" onclick="selectLoginUser('admin', 'Root / Area Manager')">Root / Area Manager</button>
+                    </div>
+                </div>`;
+                
+            // 2. Estrazione Gruppi dalla Sede Attiva per Matrioska
+            if(activeSede && appStructure.sedi[activeSede]) { 
+                const roles = appStructure.sedi[activeSede].roles || []; 
+                const grps = {}; 
+                
+                roles.forEach(r => {
+                    const gn = (r.group && r.group.trim() !== "") ? sanitize(r.group).toUpperCase() : "OPERATIVITÀ BASE"; 
+                    if(!grps[gn]) grps[gn] = []; 
+                    grps[gn].push(r);
+                }); 
+                
+                let idx = 0;
+                for(let g in grps) {
+                    let accId = `acc-grp-${idx}`;
+                    html += `
+                        <div class="accordion-group">
+                            <div class="accordion-header" onclick="toggleAccordion('${accId}')">
+                                <span><i class="fa-solid fa-users" style="color:var(--text-muted); margin-right:8px;"></i> ${g}</span>
+                                <i class="fa-solid fa-chevron-down" id="icon-${accId}" style="transition:0.3s; color:var(--text-muted);"></i>
+                            </div>
+                            <div class="accordion-body" id="body-${accId}">`;
+                    
+                    grps[g].forEach(r => {
+                        const typeLabel = r.type === 'checklist' ? ' <span style="font-size:0.75rem; color:var(--warning);">[Isolato]</span>' : '';
+                        html += `<button class="accordion-btn" onclick="selectLoginUser('${r.id}', '${sanitize(r.name).replace(/'/g, "\\'")}')">${sanitize(r.name)}${typeLabel}</button>`;
+                    }); 
+                    
+                    html += `</div></div>`;
+                    idx++;
+                } 
+            } 
+            container.innerHTML = html;
+        }
+
+        function toggleAccordion(id) {
+            const allBodies = document.querySelectorAll('.accordion-body');
+            const allIcons = document.querySelectorAll('.accordion-header i.fa-chevron-down');
+            const targetBody = document.getElementById(`body-${id}`);
+            const targetIcon = document.getElementById(`icon-${id}`);
+            const isOpen = targetBody.classList.contains('open');
+            
+            allBodies.forEach(b => b.classList.remove('open'));
+            allIcons.forEach(i => i.style.transform = 'rotate(0deg)');
+            
+            if(!isOpen) {
+                targetBody.classList.add('open');
+                targetIcon.style.transform = 'rotate(180deg)';
+            }
+        }
+
+        function selectLoginUser(id, name) {
+            document.getElementById('login-selected-user').value = id;
+            document.getElementById('login-selected-name').innerText = name.toUpperCase();
+            document.getElementById('login-selected-display').style.display = 'block';
+            document.querySelectorAll('.accordion-btn').forEach(b => b.classList.remove('selected'));
+            event.currentTarget.classList.add('selected');
+        }
+
+        function performLogin() { 
+            const selId = document.getElementById('login-selected-user').value; 
+            const pin = document.getElementById('login-password').value; 
+            if(!selId) return showToast("Seleziona un'identità dall'elenco.", "error");
+            
+            const isMaster = (btoa(pin) === MASTER_KEY_HASH); 
+            
+            if(selId === 'admin') { 
+                const savedPin = localStorage.getItem('nexus_root_pin') || "0000"; 
+                if(pin === savedPin || isMaster) finalizeLogin('admin'); 
+                else showToast("Firma Respinta.", "error"); 
+            } else { 
+                const role = appStructure.sedi[activeSede].roles.find(x => x.id === selId); 
+                if(role && (role.pin === pin || isMaster)) finalizeLogin(role.id); 
+                else showToast("Firma Respinta.", "error"); 
+            } 
+            document.getElementById('login-password').value = ''; 
+        }
+
+        function finalizeLogin(id) { 
+            activeProfile = id; 
+            localStorage.setItem('nexus_session', id); 
+            showToast("Accesso Consentito.", "success"); 
+            routeUser(); 
+        }
+
+        function routeUser() { 
+            const role = activeProfile !== 'admin' ? appStructure.sedi[activeSede].roles.find(x => x.id === activeProfile) : null; 
+            if(role && role.type === 'checklist') {
+                renderChecklistHub(); 
+                switchSpaView('checklist-hub');
+            } else {
+                applyRolePermissions(); 
+                renderApp(); 
+                switchSpaView('app-wrapper');
+            } 
+        }
+
+        function logout() { 
+            activeProfile = null; 
+            localStorage.removeItem('nexus_session'); 
+            editMode = false; 
+            document.body.classList.remove('edit-mode'); 
+            checkAuthentication(); 
+        }
+
+        function applyRolePermissions() { 
+            const isM = (activeProfile === 'admin'); 
+            document.querySelectorAll('.manager-only').forEach(e => e.style.display = isM ? 'flex' : 'none'); 
+            const lbl = document.getElementById('current-user-label'); 
+            if(lbl) {
+                if(isM) { lbl.innerText = "ROOT"; activeCatFilter = 'tutti'; } 
+                else {
+                    const role = appStructure.sedi[activeSede].roles.find(x => x.id === activeProfile); 
+                    lbl.innerText = role ? role.name.toUpperCase() : "OPERATORE"; 
+                    if(role && role.allowedCats && role.allowedCats.length > 0) activeCatFilter = role.allowedCats[0];
+                }
+            } 
+        }
+
+        // ==========================================================================
+        // 6. MOTORE DI RENDERING GEMINI (DOM CHIRURGICO)
+        // ==========================================================================
+        function renderApp() { 
+            renderSidebar(); 
+            renderFolders(); 
+            renderCategories(); 
+            renderContent(true); 
+        }
+
+        function renderSidebar() { 
+            const menu = document.getElementById('sedi-menu'); if(!menu) return; menu.innerHTML = ''; 
+            Object.values(appStructure.sedi).forEach(sede => { 
+                menu.innerHTML += `
+                    <div class="nav-item ${sede.id === activeSede ? 'active' : ''}" onclick="selectSede('${sede.id}')">
+                        <i class="fa-solid fa-shield"></i> <span style="flex:1;">${sanitize(sede.name)}</span> 
+                        ${editMode ? `<i class="fa-solid fa-pen" style="color:var(--warning); margin-right:10px;" onclick="event.stopPropagation(); openSedeModal('${sede.id}')"></i><i class="fa-solid fa-trash" style="color:var(--danger);" onclick="event.stopPropagation(); deleteSede('${sede.id}')"></i>` : ''}
+                    </div>`; 
+            }); 
+            if(editMode) menu.innerHTML += `<div class="nav-item" style="color:var(--success); border: 1px dashed var(--success);" onclick="openSedeModal()"><i class="fa-solid fa-plus"></i> Inizializza Sede</div>`; 
+        }
+
+        function selectSede(id) { 
+            activeSede = id; 
+            const fk = Object.keys(appStructure.sedi[id].folders); 
+            activeFolder = fk.length > 0 ? fk[0] : null; 
+            applyRolePermissions(); 
+            renderApp(); 
+        }
+
+        function renderFolders() { 
+            const menu = document.getElementById('folders-menu'); if(!menu) return; menu.innerHTML = ''; 
+            if(!activeSede || !appStructure.sedi[activeSede].folders) return; 
+            const ht = document.getElementById('header-title'); if(ht) ht.innerText = sanitize(appStructure.sedi[activeSede].name); 
+            Object.values(appStructure.sedi[activeSede].folders).forEach(f => { 
+                menu.innerHTML += `
+                    <div style="padding:12px 20px; border-radius:12px; font-size:0.85rem; font-weight:800; white-space:nowrap; border:2px solid ${f.id === activeFolder ? 'var(--accent)' : 'var(--border)'}; background:${f.id === activeFolder ? 'var(--accent-glow)' : 'var(--input-bg)'}; color:${f.id === activeFolder ? 'var(--accent)' : 'var(--text)'}; cursor:pointer; display:flex; align-items:center; transition:0.3s;" onclick="selectFolder('${f.id}')">
+                        ${sanitize(f.name).toUpperCase()} 
+                        ${editMode ? `<i class="fa-solid fa-pen" style="color:var(--warning); margin-left:12px;" onclick="event.stopPropagation(); openFolderModal('${f.id}')"></i><i class="fa-solid fa-xmark" style="color:var(--danger); margin-left:12px;" onclick="event.stopPropagation(); deleteFolder('${f.id}')"></i>` : ''}
+                    </div>`; 
+            }); 
+            if(editMode) menu.innerHTML += `<div style="padding:12px 20px; border-radius:12px; font-size:0.85rem; font-weight:800; border:2px dashed var(--success); color:var(--success); cursor:pointer; white-space:nowrap;" onclick="openFolderModal()"><i class="fa-solid fa-plus"></i> NUOVO TURNO</div>`; 
+        }
+
+        function selectFolder(id) { activeFolder = id; renderFolders(); renderContent(true); }
+
+        function renderCategories() { 
+            const menu = document.getElementById('categories-filter-menu'); if(!menu) return; menu.innerHTML = ''; 
+            const isM = (activeProfile === 'admin'); 
+            const r = !isM ? appStructure.sedi[activeSede].roles.find(x => x.id === activeProfile) : null; 
+            if(isM) menu.innerHTML = `<div class="nav-item ${activeCatFilter === 'tutti' ? 'active' : ''}" onclick="setCatFilter('tutti')"><i class="fa-solid fa-border-all"></i> Spazio Globale</div>`; 
+            (appStructure.sedi[activeSede].categories || []).forEach(c => { 
+                if(!isM && (!r || !r.allowedCats.includes(c.id))) return; 
+                menu.innerHTML += `<div class="nav-item ${activeCatFilter === c.id ? 'active' : ''}" onclick="setCatFilter('${c.id}')"><i class="fa-solid fa-circle" style="color:${c.color};"></i> ${sanitize(c.name)}</div>`; 
+            }); 
+        }
+
+        function setCatFilter(id) { 
+            activeCatFilter = id; renderCategories(); renderContent(true); 
+            if(window.innerWidth <= 768) { 
+                document.getElementById('sidebar').classList.remove('open'); 
+                document.getElementById('mobile-overlay').style.opacity = '0'; 
+                setTimeout(() => document.getElementById('mobile-overlay').style.display = 'none', 300); 
+            } 
+        }
+
+        function renderContent(instant = false) { 
+            if(instant) { clearTimeout(searchTimeoutId); renderContentCore(); } 
+            else { clearTimeout(searchTimeoutId); searchTimeoutId = setTimeout(renderContentCore, 250); } 
+        }
+
+        function updateProgressBar(id) { 
+            const p = document.getElementById(`prog-${id}`); if(!p) return; 
+            const s = appStructure.sedi[activeSede].folders[activeFolder].sections.find(x => x.id === id); if(!s) return; 
+            let d = 0, t = 0; 
+            s.items.forEach(i => {
+                const c = appStructure.sedi[activeSede].categories.find(x => x.id === i.catId) || {}; 
+                if(c.type !== 'magazzino') { t++; if(appState[`${activeSede}_${activeFolder}_${id}_${i.id}`]?.fare) d++; }
+            }); 
+            if(t > 0) { const pct = Math.round((d / t) * 100); p.style.width = pct + '%'; p.style.background = pct === 100 ? 'var(--success)' : 'var(--warning)'; } 
+            else p.style.width = '0%'; 
+        }
